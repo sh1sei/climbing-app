@@ -382,19 +382,19 @@ export default function Home() {
     <div className="min-h-screen bg-bg pb-32">
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full px-3 h-12 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-primary tracking-wide">カベログ</h1>
+        <div className="w-full px-4 h-14 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
             <a
               href={`/user/${user.id}`}
-              className="text-sm text-text-sub hover:text-primary transition-colors"
+              className="text-base text-text-sub hover:text-primary transition-colors"
             >
               {nickname}
             </a>
           ) : (
             <a
               href="/login"
-              className="text-sm text-primary font-medium hover:text-primary-dark transition-colors"
+              className="text-base text-primary font-medium hover:text-primary-dark transition-colors"
             >
               ログイン
             </a>
@@ -403,15 +403,15 @@ export default function Home() {
       </header>
 
       {/* ===== フィルターバー（横スクロール） ===== */}
-      <div className="sticky top-12 z-40 bg-card border-b border-border overflow-visible">
+      <div className="sticky top-14 z-40 bg-card border-b border-border overflow-visible">
         <div className="w-full overflow-visible">
-          <div ref={filterBarRef} className="flex items-center gap-2 px-3 py-2 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div ref={filterBarRef} className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
             {/* グレードFrom */}
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeFrom')}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                   gradeFrom
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -448,7 +448,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeTo')}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                   gradeTo
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -483,7 +483,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('sort')}
-                className="px-3 py-1.5 rounded-full text-xs font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
+                className="px-4 py-2 rounded-full text-sm font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
               >
                 {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
               </button>
@@ -508,7 +508,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gym')}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                   selectedGymId !== 'all'
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -545,7 +545,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('wall')}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                   selectedWallId !== 'all'
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -582,7 +582,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('holdType')}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                   activeHoldTypes.length > 0
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -618,7 +618,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('style')}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                   activeStyles.length > 0
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -653,7 +653,7 @@ export default function Home() {
             {/* キャンパ */}
             <button
               onClick={() => toggleCampus()}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                 isCampus
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -666,7 +666,7 @@ export default function Home() {
             {user && (
               <button
                 onClick={() => toggleHideCompleted()}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
                   hideCompleted
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -700,15 +700,15 @@ export default function Home() {
                     className="w-full h-full object-cover object-[center_70%]"
                   />
                 </div>
-                <div className="px-2 py-1.5">
+                <div className="px-2.5 py-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-text-main">{route.grade}</p>
+                    <p className="text-base font-bold text-text-main">{route.grade}</p>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-text-sub">♡{route.favorite_count}</span>
-                      <span className="text-[11px] text-text-sub">✓{route.ascent_count}</span>
+                      <span className="text-xs text-text-sub">♡{route.favorite_count}</span>
+                      <span className="text-xs text-text-sub">✓{route.ascent_count}</span>
                     </div>
                   </div>
-                  <p className="text-[11px] text-text-sub mt-0.5 truncate">
+                  <p className="text-xs text-text-sub mt-0.5 truncate">
                     {route.poster_nickname}
                   </p>
                 </div>

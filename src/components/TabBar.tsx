@@ -16,7 +16,7 @@ type TabKey = typeof TAB_ITEMS[number]['key']
 /* アイコンSVG */
 function TabIcon({ tabKey, active }: { tabKey: TabKey; active: boolean }) {
   const color = active ? '#C9A96E' : '#999999'
-  const size = 28
+  const size = 30
   const stroke = active ? 2.2 : 1.8
 
   switch (tabKey) {
@@ -90,7 +90,7 @@ export default function TabBar() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="w-full max-w-screen-sm mx-auto flex items-center justify-around h-16 px-2">
+      <div className="w-full flex items-center justify-around h-[68px] px-2">
         {TAB_ITEMS.map((item) => {
           const isActive = activeTab === item.key
           const isDisabled = item.requireAuth && !userId
@@ -104,7 +104,7 @@ export default function TabBar() {
               }`}
             >
               <TabIcon tabKey={item.key} active={isActive && !isDisabled} />
-              <span className={`text-[11px] ${
+              <span className={`text-xs ${
                 isDisabled
                   ? 'text-text-sub'
                   : isActive
