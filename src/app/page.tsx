@@ -382,7 +382,7 @@ export default function Home() {
     <div className="min-h-screen bg-bg pb-32">
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full max-w-screen-sm mx-auto px-3 h-12 flex items-center justify-between">
+        <div className="w-full px-3 h-12 flex items-center justify-between">
           <h1 className="text-xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
             <a
@@ -402,13 +402,13 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ===== フィルターバー（折り返し） ===== */}
+      {/* ===== フィルターバー（横スクロール） ===== */}
       <div className="sticky top-12 z-40 bg-card border-b border-border overflow-visible">
-        <div className="w-full max-w-screen-sm mx-auto overflow-visible">
-          <div ref={filterBarRef} className="flex flex-wrap items-center gap-2 px-3 py-2.5 overflow-visible">
+        <div className="w-full overflow-visible">
+          <div ref={filterBarRef} className="flex items-center gap-2 px-3 py-2 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
             {/* グレードFrom */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeFrom')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
@@ -442,10 +442,10 @@ export default function Home() {
               )}
             </div>
 
-            <span className="text-text-sub text-xs">〜</span>
+            <span className="text-text-sub text-xs shrink-0">〜</span>
 
             {/* グレードTo */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeTo')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
@@ -480,7 +480,7 @@ export default function Home() {
             </div>
 
             {/* ソート */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('sort')}
                 className="px-3 py-1.5 rounded-full text-xs font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
@@ -505,7 +505,7 @@ export default function Home() {
             </div>
 
             {/* ジム */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gym')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
@@ -542,7 +542,7 @@ export default function Home() {
             </div>
 
             {/* 壁 */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('wall')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
@@ -579,7 +579,7 @@ export default function Home() {
             </div>
 
             {/* ホールドタイプ（複数選択ドロップダウン） */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('holdType')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
@@ -615,7 +615,7 @@ export default function Home() {
             </div>
 
             {/* 課題系統（複数選択ドロップダウン） */}
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('style')}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
@@ -653,7 +653,7 @@ export default function Home() {
             {/* キャンパ */}
             <button
               onClick={() => toggleCampus()}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
                 isCampus
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -666,7 +666,7 @@ export default function Home() {
             {user && (
               <button
                 onClick={() => toggleHideCompleted()}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
                   hideCompleted
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -680,35 +680,35 @@ export default function Home() {
       </div>
 
       {/* ===== 課題一覧（2列グリッド） ===== */}
-      <main className="w-full max-w-screen-sm mx-auto px-1.5 pt-1.5">
+      <main className="w-full pt-[2px]">
         {filteredRoutes.length === 0 ? (
           <p className="text-center text-text-sub py-12 text-sm">
             {routes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-2 gap-[2px]">
             {filteredRoutes.map((route) => (
               <a
                 key={route.id}
                 href={`/routes/${route.id}`}
-                className="block bg-card overflow-hidden rounded-md"
+                className="block bg-card overflow-hidden"
               >
-                <div className="aspect-[20/6] overflow-hidden">
+                <div className="aspect-[5/2] overflow-hidden">
                   <img
                     src={route.image_url}
                     alt="課題写真"
                     className="w-full h-full object-cover object-[center_70%]"
                   />
                 </div>
-                <div className="px-2 py-2">
+                <div className="px-2 py-1.5">
                   <div className="flex items-center justify-between">
-                    <p className="text-[15px] font-bold text-text-main">{route.grade}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-text-sub">♡{route.favorite_count}</span>
-                      <span className="text-xs text-text-sub">✓{route.ascent_count}</span>
+                    <p className="text-sm font-bold text-text-main">{route.grade}</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-text-sub">♡{route.favorite_count}</span>
+                      <span className="text-[11px] text-text-sub">✓{route.ascent_count}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-text-sub mt-0.5 truncate">
+                  <p className="text-[11px] text-text-sub mt-0.5 truncate">
                     {route.poster_nickname}
                   </p>
                 </div>
