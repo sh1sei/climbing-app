@@ -305,12 +305,12 @@ export default function RouteDetailPage() {
 
   /* ========== UI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-28">
+    <div className="min-h-screen bg-bg pb-32">
 
       {/* ===== 1. 属性タグ ===== */}
       {allTags.length > 0 && (
         <div className="bg-card border-b border-border">
-          <div className="max-w-lg mx-auto px-4 py-3 flex flex-wrap gap-2">
+          <div className="w-full max-w-screen-sm mx-auto px-4 py-3 flex flex-wrap gap-2">
             {allTags.map((tag) => (
               <span
                 key={tag}
@@ -324,7 +324,7 @@ export default function RouteDetailPage() {
       )}
 
       {/* ===== 2. 画像 ===== */}
-      <div className="max-w-lg mx-auto">
+      <div className="w-full max-w-screen-sm mx-auto">
         <img
           src={route.image_url}
           alt="課題写真"
@@ -363,7 +363,7 @@ export default function RouteDetailPage() {
         </div>
       )}
 
-      <div className="max-w-lg mx-auto px-4">
+      <div className="w-full max-w-screen-sm mx-auto px-4">
 
         {/* ===== 3. 投稿者名、グレード、お気に入り数、完登者数 ===== */}
         <div className="pt-4">

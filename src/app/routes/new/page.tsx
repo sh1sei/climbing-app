@@ -194,15 +194,15 @@ export default function NewRoute() {
 
   /* ========== UI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-28">
+    <div className="min-h-screen bg-bg pb-32">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-center">
+        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center justify-center">
           <h1 className="text-lg font-bold text-text-main">課題を投稿</h1>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 pt-6 space-y-6">
+      <div className="w-full max-w-screen-sm mx-auto px-4 pt-6 space-y-6">
 
         {/* 1. ジム */}
         <div>

@@ -16,7 +16,7 @@ type TabKey = typeof TAB_ITEMS[number]['key']
 /* アイコンSVG */
 function TabIcon({ tabKey, active }: { tabKey: TabKey; active: boolean }) {
   const color = active ? '#C9A96E' : '#999999'
-  const size = 24
+  const size = 28
   const stroke = active ? 2.2 : 1.8
 
   switch (tabKey) {
@@ -89,8 +89,8 @@ export default function TabBar() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border">
-      <div className="max-w-lg mx-auto flex items-center justify-around h-16 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="w-full max-w-screen-sm mx-auto flex items-center justify-around h-16 px-2">
         {TAB_ITEMS.map((item) => {
           const isActive = activeTab === item.key
           const isDisabled = item.requireAuth && !userId
@@ -99,12 +99,12 @@ export default function TabBar() {
               key={item.key}
               onClick={() => handleTabClick(item)}
               disabled={isDisabled}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors ${
                 isDisabled ? 'opacity-35 cursor-default' : ''
               }`}
             >
               <TabIcon tabKey={item.key} active={isActive && !isDisabled} />
-              <span className={`text-[10px] ${
+              <span className={`text-[11px] ${
                 isDisabled
                   ? 'text-text-sub'
                   : isActive
@@ -117,8 +117,6 @@ export default function TabBar() {
           )
         })}
       </div>
-      {/* Safe area padding for notched phones */}
-      <div className="h-[env(safe-area-inset-bottom)]" />
     </nav>
   )
 }

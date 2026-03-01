@@ -80,15 +80,15 @@ export default function FavoritesPage() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-28">
+    <div className="min-h-screen bg-bg pb-32">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-center">
+        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center justify-center">
           <h1 className="text-lg font-bold text-text-main">保存した課題</h1>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 pt-4">
+      <main className="w-full max-w-screen-sm mx-auto px-4 pt-4">
         {routes.length === 0 ? (
           <p className="text-center text-text-sub text-sm py-16">
             まだ課題を保存していません

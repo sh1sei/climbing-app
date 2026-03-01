@@ -191,10 +191,10 @@ export default function AdminGyms() {
 
   /* ========== UI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-28">
+    <div className="min-h-screen bg-bg pb-32">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center justify-between">
           <a href="/" className="text-text-sub hover:text-primary transition-colors text-sm">
             ← ホーム
           </a>
@@ -203,7 +203,7 @@ export default function AdminGyms() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 pt-6">
+      <div className="w-full max-w-screen-sm mx-auto px-4 pt-6">
 
         {/* ジム登録フォーム */}
         <div className="bg-card rounded-xl border border-border p-4">

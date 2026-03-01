@@ -177,10 +177,10 @@ export default function EditRoutePage() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-28">
+    <div className="min-h-screen bg-bg pb-32">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center justify-between">
           <a href={`/routes/${routeId}`} className="text-text-sub hover:text-primary transition-colors text-sm">
             ← 戻る
           </a>
@@ -189,7 +189,7 @@ export default function EditRoutePage() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 pt-4">
+      <div className="w-full max-w-screen-sm mx-auto px-4 pt-4">
         <p className="text-sm text-text-sub mb-6">{gymName}</p>
 
         <div className="space-y-6">

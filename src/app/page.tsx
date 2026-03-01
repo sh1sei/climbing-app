@@ -379,10 +379,10 @@ export default function Home() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-24">
+    <div className="min-h-screen bg-bg pb-32">
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="w-full max-w-screen-sm mx-auto px-4 h-12 flex items-center justify-between">
           <h1 className="text-xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
             <a
@@ -403,9 +403,9 @@ export default function Home() {
       </header>
 
       {/* ===== フィルターバー（折り返し） ===== */}
-      <div className="sticky top-14 z-40 bg-card border-b border-border overflow-visible">
-        <div className="max-w-lg mx-auto overflow-visible">
-          <div ref={filterBarRef} className="flex flex-wrap items-center gap-2 px-4 py-3 overflow-visible">
+      <div className="sticky top-12 z-40 bg-card border-b border-border overflow-visible">
+        <div className="w-full max-w-screen-sm mx-auto overflow-visible">
+          <div ref={filterBarRef} className="flex flex-wrap items-center gap-2 px-3 py-2.5 overflow-visible">
 
             {/* グレードFrom */}
             <div className="relative">
@@ -680,7 +680,7 @@ export default function Home() {
       </div>
 
       {/* ===== 課題一覧（2列グリッド） ===== */}
-      <main className="max-w-lg mx-auto px-4 pt-4">
+      <main className="w-full max-w-screen-sm mx-auto px-4 pt-4">
         {filteredRoutes.length === 0 ? (
           <p className="text-center text-text-sub py-12 text-sm">
             {routes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
@@ -693,25 +693,25 @@ export default function Home() {
                 href={`/routes/${route.id}`}
                 className="block bg-card rounded-xl overflow-hidden border border-border hover:shadow-md transition-shadow"
               >
-                <div className="aspect-[20/6] overflow-hidden">
+                <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src={route.image_url}
                     alt="課題写真"
-                    className="w-full h-full object-cover object-[center_80%]"
+                    className="w-full h-full object-cover object-[center_70%]"
                   />
                 </div>
-                <div className="p-2.5">
-                  <p className="text-xs text-text-sub truncate">
+                <div className="p-3">
+                  <p className="text-sm text-text-sub truncate">
                     {route.poster_nickname}
                   </p>
-                  <p className="text-base font-bold text-text-main mt-0.5">
+                  <p className="text-lg font-bold text-text-main mt-0.5">
                     {route.grade}
                   </p>
                   <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-xs text-text-sub flex items-center gap-0.5">
+                    <span className="text-sm text-text-sub flex items-center gap-0.5">
                       ♡ {route.favorite_count}
                     </span>
-                    <span className="text-xs text-text-sub flex items-center gap-0.5">
+                    <span className="text-sm text-text-sub flex items-center gap-0.5">
                       ✓ {route.ascent_count}
                     </span>
                   </div>

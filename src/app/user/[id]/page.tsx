@@ -201,17 +201,17 @@ export default function UserPage() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-28">
+    <div className="min-h-screen bg-bg pb-32">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center">
+        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center">
           <a href="/" className="text-text-sub hover:text-primary transition-colors text-sm">
             ← ホーム
           </a>
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4">
+      <div className="w-full max-w-screen-sm mx-auto px-4">
 
         {/* ニックネーム */}
         <div className="mt-4 p-4 bg-card rounded-xl border border-border">
