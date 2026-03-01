@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
+
+/* ========== 型定義 ========== */
 
 type Gym = {
   id: string
@@ -12,19 +14,33 @@ type Gym = {
   longitude: number
 }
 
-type Route = {
+type Wall = {
+  id: string
+  gym_id: string
+  name: string
+}
+
+type RouteWithCounts = {
   id: string
   grade: string
   tags: string[]
   image_url: string
+  description: string | null
+  hold_type: string[] | null
+  style: string | null
   created_at: string
   gym_id: string
-  gyms: { name: string }[]
-  walls: { name: string }[]
-  profiles: { nickname: string }[]
+  wall_id: string
+  user_id: string
+  gym_name: string
+  wall_name: string
+  poster_nickname: string
   ascent_count: number
   recommend_count: number
+  favorite_count: number
 }
+
+/* ========== 定数 ========== */
 
 const GRADES = [
   '5級-','5級','5級+',
@@ -36,6 +52,22 @@ const GRADES = [
   '二段-','二段','二段+',
   '三段-','三段','三段+',
 ]
+
+const HOLD_TYPES = ['カチ', 'ピンチ', 'ポッケ', 'スローパー', 'ボリューム']
+const STYLES = ['ショート', 'ストレニ']
+const STYLE_LABELS: Record<string, string> = {
+  'ショート': 'ショートハード系',
+  'ストレニ': 'ストレニアス系',
+}
+
+type SortType = 'new' | 'repeat' | 'recommend'
+const SORT_OPTIONS: { value: SortType; label: string }[] = [
+  { value: 'new', label: '新課題順' },
+  { value: 'repeat', label: 'リピート順' },
+  { value: 'recommend', label: 'おすすめ順' },
+]
+
+/* ========== ユーティリティ ========== */
 
 function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371
@@ -51,25 +83,39 @@ function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c
 }
 
+/* ========== コンポーネント ========== */
+
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
   const [nickname, setNickname] = useState<string | null>(null)
   const [gyms, setGyms] = useState<Gym[]>([])
-  const [allRoutes, setAllRoutes] = useState<Route[]>([])
-  const [filteredRoutes, setFilteredRoutes] = useState<Route[]>([])
+  const [walls, setWalls] = useState<Wall[]>([])
+  const [routes, setRoutes] = useState<RouteWithCounts[]>([])
+  const [filteredRoutes, setFilteredRoutes] = useState<RouteWithCounts[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // フィルター状態
   const [selectedGymId, setSelectedGymId] = useState<string>('all')
+  const [selectedWallId, setSelectedWallId] = useState<string>('all')
   const [gradeFrom, setGradeFrom] = useState<string>('')
   const [gradeTo, setGradeTo] = useState<string>('')
-  const [showGradeFilter, setShowGradeFilter] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [locationStatus, setLocationStatus] = useState<string>('')
+  const [sortType, setSortType] = useState<SortType>('new')
+  const [activeHoldTypes, setActiveHoldTypes] = useState<string[]>([])
+  const [activeStyles, setActiveStyles] = useState<string[]>([])
+  const [isCampus, setIsCampus] = useState(false)
+  const [hideCompleted, setHideCompleted] = useState(false)
+  const [myAscentRouteIds, setMyAscentRouteIds] = useState<Set<string>>(new Set())
+
+  // ドロップダウン状態（1つだけ開く or null）
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+
   const supabase = createClient()
   const router = useRouter()
 
+  /* ===== 初期化 ===== */
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-
       if (user) {
         setUser(user)
         const { data: profile } = await supabase
@@ -77,12 +123,20 @@ export default function Home() {
           .select('nickname')
           .eq('id', user.id)
           .single()
-
         if (!profile) {
           router.push('/setup-profile')
           return
         }
         setNickname(profile.nickname)
+
+        // 自分の完登済み課題IDを取得
+        const { data: ascentsData } = await supabase
+          .from('ascents')
+          .select('route_id')
+          .eq('user_id', user.id)
+        if (ascentsData) {
+          setMyAscentRouteIds(new Set(ascentsData.map((a: any) => a.route_id)))
+        }
       }
 
       const { data: gymsData } = await supabase
@@ -100,32 +154,30 @@ export default function Home() {
               maximumAge: 300000,
             })
           })
-
           const userLat = position.coords.latitude
           const userLon = position.coords.longitude
-
           const sortedGyms = [...gymsData].sort((a, b) => {
             const distA = getDistanceKm(userLat, userLon, a.latitude, a.longitude)
             const distB = getDistanceKm(userLat, userLon, b.latitude, b.longitude)
             return distA - distB
           })
-
           setGyms(sortedGyms)
-
           const nearestGym = sortedGyms[0]
           const distance = getDistanceKm(userLat, userLon, nearestGym.latitude, nearestGym.longitude)
-
           if (distance < 2) {
             initialGymId = nearestGym.id
             setSelectedGymId(nearestGym.id)
-            setLocationStatus(`📍 ${nearestGym.name}（${distance.toFixed(1)}km）`)
           }
         } catch {
           setGyms(gymsData)
         }
-      } else {
-        setGyms([])
       }
+
+      const { data: wallsData } = await supabase
+        .from('walls')
+        .select('id, gym_id, name')
+        .order('name')
+      if (wallsData) setWalls(wallsData)
 
       await fetchRoutes(initialGymId)
       setLoading(false)
@@ -133,317 +185,542 @@ export default function Home() {
     init()
   }, [])
 
+  /* ===== ドロップダウン制御 ===== */
+  const filterBarRef = useRef<HTMLDivElement>(null)
+
+  const toggleDropdown = useCallback((name: string) => {
+    setActiveDropdown(prev => prev === name ? null : name)
+  }, [])
+
+  // フィルターバーの外側クリックでドロップダウンを閉じる
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (filterBarRef.current && !filterBarRef.current.contains(e.target as Node)) {
+        setActiveDropdown(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  /* ===== データ取得 ===== */
   const fetchRoutes = async (gymId?: string) => {
     let query = supabase
-      .from('routes')
-      .select('id, grade, tags, image_url, created_at, user_id, gym_id, gyms(name), walls(name)')
-      .order('created_at', { ascending: false })
+      .from('routes_with_counts')
+      .select('*')
 
-    if (gymId && gymId !== 'all') {
-      query = query.eq('gym_id', gymId)
+    const targetGymId = gymId ?? selectedGymId
+    if (targetGymId && targetGymId !== 'all') {
+      query = query.eq('gym_id', targetGymId)
     }
 
-    const { data: routesData } = await query
-
-    if (routesData) {
-      const routesWithCount = await Promise.all(
-        routesData.map(async (route: any) => {
-          const { count: ascentCount } = await supabase
-            .from('ascents')
-            .select('*', { count: 'exact', head: true })
-            .eq('route_id', route.id)
-          const { count: recommendCount } = await supabase
-            .from('ascents')
-            .select('*', { count: 'exact', head: true })
-            .eq('route_id', route.id)
-            .eq('recommended', true)
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('nickname')
-            .eq('id', route.user_id)
-            .single()
-          return {
-            ...route,
-            ascent_count: ascentCount || 0,
-            recommend_count: recommendCount || 0,
-            profiles: profile ? [profile] : [],
-          }
-        })
-      )
-      setAllRoutes(routesWithCount as Route[])
-      applyGradeFilter(routesWithCount as Route[], gradeFrom, gradeTo)
+    const { data } = await query
+    if (data) {
+      setRoutes(data as RouteWithCounts[])
+      applyFilters(data as RouteWithCounts[], {
+        gradeFrom, gradeTo, sortType, activeHoldTypes, activeStyles, isCampus, hideCompleted,
+        wallId: selectedWallId,
+      })
     }
   }
 
-  const applyGradeFilter = (routes: Route[], from: string, to: string) => {
-    if (!from && !to) {
-      setFilteredRoutes(routes)
-      return
-    }
-
-    const fromIndex = from ? GRADES.indexOf(from) : 0
-    const toIndex = to ? GRADES.indexOf(to) : GRADES.length - 1
-
-    const filtered = routes.filter((route) => {
-      const routeIndex = GRADES.indexOf(route.grade)
-      if (routeIndex === -1) return true
-      return routeIndex >= fromIndex && routeIndex <= toIndex
-    })
-
-    setFilteredRoutes(filtered)
+  /* ===== フィルター適用 ===== */
+  type FilterParams = {
+    gradeFrom: string
+    gradeTo: string
+    sortType: SortType
+    activeHoldTypes: string[]
+    activeStyles: string[]
+    isCampus: boolean
+    hideCompleted: boolean
+    wallId: string
   }
 
-  const handleGymFilter = async (gymId: string) => {
+  const applyFilters = (data: RouteWithCounts[], params: FilterParams) => {
+    let result = [...data]
+
+    if (params.gradeFrom || params.gradeTo) {
+      const fromIndex = params.gradeFrom ? GRADES.indexOf(params.gradeFrom) : 0
+      const toIndex = params.gradeTo ? GRADES.indexOf(params.gradeTo) : GRADES.length - 1
+      result = result.filter((r) => {
+        const idx = GRADES.indexOf(r.grade)
+        if (idx === -1) return true
+        return idx >= fromIndex && idx <= toIndex
+      })
+    }
+
+    if (params.wallId && params.wallId !== 'all') {
+      result = result.filter((r) => r.wall_id === params.wallId)
+    }
+
+    if (params.activeHoldTypes.length > 0) {
+      result = result.filter((r) => r.hold_type && r.hold_type.some(ht => params.activeHoldTypes.includes(ht)))
+    }
+
+    if (params.activeStyles.length > 0) {
+      result = result.filter((r) => {
+        if (!r.style) return false
+        return params.activeStyles.some(s => STYLE_LABELS[s] === r.style)
+      })
+    }
+
+    if (params.isCampus) {
+      result = result.filter((r) => r.tags && r.tags.includes('キャンパ課題'))
+    }
+
+    if (params.hideCompleted && myAscentRouteIds.size > 0) {
+      result = result.filter((r) => !myAscentRouteIds.has(r.id))
+    }
+
+    switch (params.sortType) {
+      case 'new':
+        result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        break
+      case 'repeat':
+        result.sort((a, b) => b.ascent_count - a.ascent_count)
+        break
+      case 'recommend':
+        result.sort((a, b) => b.recommend_count - a.recommend_count)
+        break
+    }
+
+    setFilteredRoutes(result)
+  }
+
+  /* ===== フィルターハンドラ ===== */
+  const currentFilterParams = (): FilterParams => ({
+    gradeFrom, gradeTo, sortType, activeHoldTypes, activeStyles, isCampus, hideCompleted,
+    wallId: selectedWallId,
+  })
+
+  const handleGymChange = async (gymId: string) => {
     setSelectedGymId(gymId)
+    setSelectedWallId('all')
+    setActiveDropdown(null)
     await fetchRoutes(gymId)
+  }
+
+  const handleWallChange = (wallId: string) => {
+    setSelectedWallId(wallId)
+    setActiveDropdown(null)
+    applyFilters(routes, { ...currentFilterParams(), wallId })
   }
 
   const handleGradeFromChange = (value: string) => {
     setGradeFrom(value)
-    applyGradeFilter(allRoutes, value, gradeTo)
+    setActiveDropdown(null)
+    applyFilters(routes, { ...currentFilterParams(), gradeFrom: value })
   }
 
   const handleGradeToChange = (value: string) => {
     setGradeTo(value)
-    applyGradeFilter(allRoutes, gradeFrom, value)
+    setActiveDropdown(null)
+    applyFilters(routes, { ...currentFilterParams(), gradeTo: value })
   }
 
-  const clearGradeFilter = () => {
-    setGradeFrom('')
-    setGradeTo('')
-    setFilteredRoutes(allRoutes)
+  const handleSortChange = (value: SortType) => {
+    setSortType(value)
+    setActiveDropdown(null)
+    applyFilters(routes, { ...currentFilterParams(), sortType: value })
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setNickname(null)
+  const toggleHoldType = (ht: string) => {
+    const next = activeHoldTypes.includes(ht)
+      ? activeHoldTypes.filter(h => h !== ht)
+      : [...activeHoldTypes, ht]
+    setActiveHoldTypes(next)
+    applyFilters(routes, { ...currentFilterParams(), activeHoldTypes: next })
   }
 
-  if (loading) return <p>読み込み中...</p>
+  const toggleStyle = (s: string) => {
+    const next = activeStyles.includes(s)
+      ? activeStyles.filter(x => x !== s)
+      : [...activeStyles, s]
+    setActiveStyles(next)
+    applyFilters(routes, { ...currentFilterParams(), activeStyles: next })
+  }
 
-  if (!user) {
+  const toggleCampus = () => {
+    const next = !isCampus
+    setIsCampus(next)
+    applyFilters(routes, { ...currentFilterParams(), isCampus: next })
+  }
+
+  const toggleHideCompleted = () => {
+    const next = !hideCompleted
+    setHideCompleted(next)
+    applyFilters(routes, { ...currentFilterParams(), hideCompleted: next })
+  }
+
+  /* ===== 現在のジムの壁リスト ===== */
+  const currentWalls = selectedGymId === 'all'
+    ? walls
+    : walls.filter(w => w.gym_id === selectedGymId)
+
+  const selectedGymName = selectedGymId === 'all'
+    ? 'ジム'
+    : gyms.find(g => g.id === selectedGymId)?.name || 'ジム'
+
+  const selectedWallName = selectedWallId === 'all'
+    ? '壁'
+    : currentWalls.find(w => w.id === selectedWallId)?.name || '壁'
+
+  /* ========== ローディング ========== */
+  if (loading) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '100px' }}>
-        <h1>カベログ</h1>
-        <p>課題を記録・共有しよう</p>
-        <a href="/login" style={{ fontSize: '18px', color: '#4285F4' }}>
-          ログインはこちら
-        </a>
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-text-sub text-sm">読み込み中...</p>
+        </div>
       </div>
     )
   }
 
-  const gradeFilterActive = gradeFrom || gradeTo
-
+  /* ========== メインUI ========== */
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '20px' }}>カベログ</h1>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <a href={`/user/${user.id}`} style={{ fontSize: '14px', color: '#333', textDecoration: 'none' }}>
-            {nickname}
-          </a>
-          <button onClick={handleLogout} style={{ fontSize: '12px', cursor: 'pointer' }}>
-            ログアウト
-          </button>
+    <div className="min-h-screen bg-bg pb-24">
+      {/* ===== ヘッダー ===== */}
+      <header className="sticky top-0 z-50 bg-card border-b border-border">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-primary tracking-wide">カベログ</h1>
+          {user ? (
+            <a
+              href={`/user/${user.id}`}
+              className="text-sm text-text-sub hover:text-primary transition-colors"
+            >
+              {nickname}
+            </a>
+          ) : (
+            <a
+              href="/login"
+              className="text-sm text-primary font-medium hover:text-primary-dark transition-colors"
+            >
+              ログイン
+            </a>
+          )}
         </div>
-      </div>
+      </header>
 
-      {locationStatus && (
-        <p style={{ fontSize: '12px', color: '#4285F4', marginTop: '8px' }}>{locationStatus}</p>
-      )}
+      {/* ===== フィルターバー（折り返し） ===== */}
+      <div className="sticky top-14 z-40 bg-card border-b border-border overflow-visible">
+        <div className="max-w-lg mx-auto overflow-visible">
+          <div ref={filterBarRef} className="flex flex-wrap items-center gap-2 px-4 py-3 overflow-visible">
 
-      <div style={{ marginTop: '16px' }}>
-        <a
-          href="/routes/new"
-          style={{
-            display: 'block',
-            textAlign: 'center',
-            padding: '12px',
-            backgroundColor: '#4285F4',
-            color: 'white',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontSize: '16px',
-          }}
-        >
-          ＋ 課題を投稿する
-        </a>
-      </div>
-
-      {/* ジムフィルター */}
-      <div style={{ marginTop: '16px', display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
-        <button
-          onClick={() => handleGymFilter('all')}
-          style={{
-            padding: '6px 16px',
-            borderRadius: '20px',
-            border: selectedGymId === 'all' ? '2px solid #4285F4' : '1px solid #ccc',
-            backgroundColor: selectedGymId === 'all' ? '#e8f0fe' : 'white',
-            color: selectedGymId === 'all' ? '#4285F4' : '#333',
-            cursor: 'pointer',
-            fontSize: '14px',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
-        >
-          すべて
-        </button>
-        {gyms.map((gym) => (
-          <button
-            key={gym.id}
-            onClick={() => handleGymFilter(gym.id)}
-            style={{
-              padding: '6px 16px',
-              borderRadius: '20px',
-              border: selectedGymId === gym.id ? '2px solid #4285F4' : '1px solid #ccc',
-              backgroundColor: selectedGymId === gym.id ? '#e8f0fe' : 'white',
-              color: selectedGymId === gym.id ? '#4285F4' : '#333',
-              cursor: 'pointer',
-              fontSize: '14px',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-            }}
-          >
-            {gym.name}
-          </button>
-        ))}
-      </div>
-
-      {/* グレードフィルター */}
-      <div style={{ marginTop: '12px' }}>
-        <button
-          onClick={() => setShowGradeFilter(!showGradeFilter)}
-          style={{
-            padding: '6px 16px',
-            borderRadius: '20px',
-            border: gradeFilterActive ? '2px solid #4285F4' : '1px solid #ccc',
-            backgroundColor: gradeFilterActive ? '#e8f0fe' : 'white',
-            color: gradeFilterActive ? '#4285F4' : '#333',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          グレード {gradeFilterActive ? `（${gradeFrom || '---'} 〜 ${gradeTo || '---'}）` : '▼'}
-        </button>
-
-        {showGradeFilter && (
-          <div style={{
-            marginTop: '8px',
-            padding: '12px',
-            backgroundColor: '#f9f9f9',
-            borderRadius: '8px',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <select
-                value={gradeFrom}
-                onChange={(e) => handleGradeFromChange(e.target.value)}
-                style={{ padding: '6px', fontSize: '14px', flex: 1 }}
-              >
-                <option value="">下限なし</option>
-                {GRADES.map((g) => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-              <span>〜</span>
-              <select
-                value={gradeTo}
-                onChange={(e) => handleGradeToChange(e.target.value)}
-                style={{ padding: '6px', fontSize: '14px', flex: 1 }}
-              >
-                <option value="">上限なし</option>
-                {GRADES.map((g) => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-            </div>
-            {gradeFilterActive && (
+            {/* グレードFrom */}
+            <div className="relative">
               <button
-                onClick={clearGradeFilter}
-                style={{
-                  marginTop: '8px',
-                  padding: '4px 12px',
-                  fontSize: '12px',
-                  backgroundColor: 'white',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
+                onClick={() => toggleDropdown('gradeFrom')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                  gradeFrom
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-primary-light text-text-main border-border hover:border-primary'
+                }`}
               >
-                クリア
+                {gradeFrom || '5級-'}
+              </button>
+              {activeDropdown === 'gradeFrom' && (
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[80px]">
+                  <button
+                    onClick={() => handleGradeFromChange('')}
+                    className="block w-full px-4 py-2 text-xs text-left hover:bg-primary-light"
+                  >
+                    下限なし
+                  </button>
+                  {GRADES.map(g => (
+                    <button
+                      key={g}
+                      onClick={() => handleGradeFromChange(g)}
+                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light ${
+                        gradeFrom === g ? 'bg-primary-light text-primary font-bold' : ''
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <span className="text-text-sub text-xs">〜</span>
+
+            {/* グレードTo */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('gradeTo')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                  gradeTo
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-primary-light text-text-main border-border hover:border-primary'
+                }`}
+              >
+                {gradeTo || '三段+'}
+              </button>
+              {activeDropdown === 'gradeTo' && (
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[80px]">
+                  <button
+                    onClick={() => handleGradeToChange('')}
+                    className="block w-full px-4 py-2 text-xs text-left hover:bg-primary-light"
+                  >
+                    上限なし
+                  </button>
+                  {GRADES.map(g => (
+                    <button
+                      key={g}
+                      onClick={() => handleGradeToChange(g)}
+                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light ${
+                        gradeTo === g ? 'bg-primary-light text-primary font-bold' : ''
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ソート */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('sort')}
+                className="px-3 py-1.5 rounded-full text-xs font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
+              >
+                {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
+              </button>
+              {activeDropdown === 'sort' && (
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
+                  {SORT_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => handleSortChange(opt.value)}
+                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                        sortType === opt.value ? 'bg-primary-light text-primary font-bold' : ''
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ジム */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('gym')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                  selectedGymId !== 'all'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-primary-light text-text-main border-border hover:border-primary'
+                }`}
+              >
+                {selectedGymName} ▼
+              </button>
+              {activeDropdown === 'gym' && (
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[120px]">
+                  <button
+                    onClick={() => handleGymChange('all')}
+                    className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                      selectedGymId === 'all' ? 'bg-primary-light text-primary font-bold' : ''
+                    }`}
+                  >
+                    すべて
+                  </button>
+                  {gyms.map(gym => (
+                    <button
+                      key={gym.id}
+                      onClick={() => handleGymChange(gym.id)}
+                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                        selectedGymId === gym.id ? 'bg-primary-light text-primary font-bold' : ''
+                      }`}
+                    >
+                      {gym.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 壁 */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('wall')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                  selectedWallId !== 'all'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-primary-light text-text-main border-border hover:border-primary'
+                }`}
+              >
+                {selectedWallName} ▼
+              </button>
+              {activeDropdown === 'wall' && (
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[100px]">
+                  <button
+                    onClick={() => handleWallChange('all')}
+                    className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                      selectedWallId === 'all' ? 'bg-primary-light text-primary font-bold' : ''
+                    }`}
+                  >
+                    すべて
+                  </button>
+                  {currentWalls.map(wall => (
+                    <button
+                      key={wall.id}
+                      onClick={() => handleWallChange(wall.id)}
+                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                        selectedWallId === wall.id ? 'bg-primary-light text-primary font-bold' : ''
+                      }`}
+                    >
+                      {wall.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* ホールドタイプ（複数選択ドロップダウン） */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('holdType')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                  activeHoldTypes.length > 0
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-primary-light text-text-main border-border hover:border-primary'
+                }`}
+              >
+                ホールド ▼
+              </button>
+              {activeDropdown === 'holdType' && (
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
+                  {HOLD_TYPES.map(ht => (
+                    <button
+                      key={ht}
+                      onClick={() => toggleHoldType(ht)}
+                      className={`flex items-center gap-2 w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                        activeHoldTypes.includes(ht) ? 'text-primary font-bold' : ''
+                      }`}
+                    >
+                      <span className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] ${
+                        activeHoldTypes.includes(ht)
+                          ? 'bg-primary border-primary text-white'
+                          : 'border-border bg-white'
+                      }`}>
+                        {activeHoldTypes.includes(ht) && '✓'}
+                      </span>
+                      {ht}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 課題系統（複数選択ドロップダウン） */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('style')}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                  activeStyles.length > 0
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-primary-light text-text-main border-border hover:border-primary'
+                }`}
+              >
+                系統 ▼
+              </button>
+              {activeDropdown === 'style' && (
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[140px]">
+                  {STYLES.map(s => (
+                    <button
+                      key={s}
+                      onClick={() => toggleStyle(s)}
+                      className={`flex items-center gap-2 w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                        activeStyles.includes(s) ? 'text-primary font-bold' : ''
+                      }`}
+                    >
+                      <span className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] ${
+                        activeStyles.includes(s)
+                          ? 'bg-primary border-primary text-white'
+                          : 'border-border bg-white'
+                      }`}>
+                        {activeStyles.includes(s) && '✓'}
+                      </span>
+                      {STYLE_LABELS[s]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* キャンパ */}
+            <button
+              onClick={() => toggleCampus()}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                isCampus
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-primary-light text-text-main border-border hover:border-primary'
+              }`}
+            >
+              キャンパ
+            </button>
+
+            {/* 完登非表示（ログイン時のみ） */}
+            {user && (
+              <button
+                onClick={() => toggleHideCompleted()}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap ${
+                  hideCompleted
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-primary-light text-text-main border-border hover:border-primary'
+                }`}
+              >
+                完登非表示
               </button>
             )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* 課題一覧 */}
-      <div style={{ marginTop: '16px' }}>
+      {/* ===== 課題一覧（2列グリッド） ===== */}
+      <main className="max-w-lg mx-auto px-4 pt-4">
         {filteredRoutes.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#999' }}>
-            {allRoutes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
+          <p className="text-center text-text-sub py-12 text-sm">
+            {routes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
           </p>
         ) : (
-          filteredRoutes.map((route) => (
-            <a
-              key={route.id}
-              href={`/routes/${route.id}`}
-              style={{
-                display: 'block',
-                border: '1px solid #ddd',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                marginBottom: '16px',
-                textDecoration: 'none',
-                color: 'inherit',
-              }}
-            >
-              <img
-                src={route.image_url}
-                alt="課題写真"
-                style={{ width: '100%', height: '250px', objectFit: 'cover' }}
-              />
-              <div style={{ padding: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '20px', fontWeight: 'bold' }}>{route.grade}</span>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    {route.recommend_count > 0 && (
-                      <span style={{ fontSize: '14px' }}>👍 {route.recommend_count}</span>
-                    )}
-                    <span style={{ fontSize: '14px', color: '#666' }}>
-                      完登 {route.ascent_count}人
+          <div className="grid grid-cols-2 gap-3">
+            {filteredRoutes.map((route) => (
+              <a
+                key={route.id}
+                href={`/routes/${route.id}`}
+                className="block bg-card rounded-xl overflow-hidden border border-border hover:shadow-md transition-shadow"
+              >
+                <div className="aspect-[20/6] overflow-hidden">
+                  <img
+                    src={route.image_url}
+                    alt="課題写真"
+                    className="w-full h-full object-cover object-[center_80%]"
+                  />
+                </div>
+                <div className="p-2.5">
+                  <p className="text-xs text-text-sub truncate">
+                    {route.poster_nickname}
+                  </p>
+                  <p className="text-base font-bold text-text-main mt-0.5">
+                    {route.grade}
+                  </p>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className="text-xs text-text-sub flex items-center gap-0.5">
+                      ♡ {route.favorite_count}
+                    </span>
+                    <span className="text-xs text-text-sub flex items-center gap-0.5">
+                      ✓ {route.ascent_count}
                     </span>
                   </div>
                 </div>
-                <p style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
-                  {route.gyms?.[0]?.name} / {route.walls?.[0]?.name}
-                </p>
-                {route.tags.length > 0 && (
-                  <div style={{ marginTop: '8px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {route.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        style={{
-                          padding: '2px 10px',
-                          backgroundColor: '#f0f0f0',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                        }}
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <p style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
-                  投稿者: {route.profiles?.[0]?.nickname} ・ {new Date(route.created_at).toLocaleDateString('ja-JP')}
-                </p>
-              </div>
-            </a>
-          ))
+              </a>
+            ))}
+          </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

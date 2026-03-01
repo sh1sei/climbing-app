@@ -1,5 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  /* カベログ カラーパレット（クラシル風） */
+  --color-primary: #C9A96E;
+  --color-primary-light: #F5F0E8;
+  --color-primary-dark: #B8944F;
+  --color-bg: #FDFBF7;
+  --color-card: #FFFFFF;
+  --color-text-main: #333333;
+  --color-text-sub: #999999;
+  --color-border: #E8E0D0;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 横スクロールバー非表示 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

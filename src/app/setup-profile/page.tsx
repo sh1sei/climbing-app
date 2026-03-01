@@ -40,43 +40,41 @@ export default function SetupProfile() {
   }
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '100px' }}>
-      <h1>ニックネーム登録</h1>
-      <p style={{ marginTop: '16px', color: '#666' }}>
-        他のユーザーに表示される名前です
-      </p>
-      <div style={{ marginTop: '24px' }}>
-        <input
-          type="text"
-          value={nickname}
-          onChange={(e) => setNickname(e.target.value)}
-          placeholder="ニックネームを入力"
-          style={{
-            padding: '10px 16px',
-            fontSize: '16px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            width: '250px',
-          }}
-        />
-      </div>
-      {error && <p style={{ color: 'red', marginTop: '8px' }}>{error}</p>}
-      <div style={{ marginTop: '16px' }}>
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          style={{
-            padding: '10px 24px',
-            fontSize: '16px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            backgroundColor: '#4285F4',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
-        >
-          {loading ? '登録中...' : '登録する'}
-        </button>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-bg px-4">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-text-main">ニックネーム登録</h1>
+          <p className="text-sm text-text-sub mt-2">他のユーザーに表示される名前です</p>
+        </div>
+
+        <div className="bg-card rounded-xl border border-border p-6">
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="ニックネームを入力"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-base focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSubmit()
+            }}
+          />
+
+          {error && (
+            <p className="mt-2 text-sm text-red-500">{error}</p>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className={`w-full mt-4 py-3 rounded-xl text-sm font-bold transition-colors ${
+              loading
+                ? 'bg-border text-text-sub cursor-not-allowed'
+                : 'bg-primary text-white hover:bg-primary-dark'
+            }`}
+          >
+            {loading ? '登録中...' : '登録する'}
+          </button>
+        </div>
       </div>
     </div>
   )

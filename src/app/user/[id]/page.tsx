@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase'
+import { createClient, ADMIN_EMAIL } from '@/lib/supabase'
+import { deleteImage } from '@/lib/upload'
 import { useParams } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 
+/* ========== 型定義 ========== */
+
 type MyAscent = {
   id: string
-  feeling: number
   recommended: boolean
   created_at: string
   route_id: string
@@ -26,6 +28,8 @@ type MyRoute = {
   wall_name: string
 }
 
+/* ========== コンポーネント ========== */
+
 export default function UserPage() {
   const params = useParams()
   const userId = params.id as string
@@ -38,6 +42,9 @@ export default function UserPage() {
   const [activeTab, setActiveTab] = useState<'ascents' | 'routes'>('ascents')
   const [loading, setLoading] = useState(true)
   const [nicknameMessage, setNicknameMessage] = useState('')
+  const [bulkDeleteDays, setBulkDeleteDays] = useState('90')
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [bulkDeleteMessage, setBulkDeleteMessage] = useState('')
   const supabase = createClient()
 
   const isOwner = currentUser?.id === userId
@@ -58,10 +65,10 @@ export default function UserPage() {
         setNewNickname(profile.nickname)
       }
 
-      // 完登履歴取得（個別にroute情報を取得）
+      // 完登履歴取得
       const { data: ascentsData } = await supabase
         .from('ascents')
-        .select('id, feeling, recommended, created_at, route_id')
+        .select('id, recommended, created_at, route_id')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
@@ -75,7 +82,6 @@ export default function UserPage() {
               .single()
             return {
               id: a.id,
-              feeling: a.feeling,
               recommended: a.recommended,
               created_at: a.created_at,
               route_id: a.route_id,
@@ -139,240 +145,270 @@ export default function UserPage() {
     setTimeout(() => setNicknameMessage(''), 2000)
   }
 
-  const getFeelingColor = (value: number) => {
-    if (value < 0) {
-      const intensity = Math.abs(value) / 5
-      return `rgba(59, 130, 246, ${0.2 + intensity * 0.6})`
+  /* ========== 古い投稿の一括削除 ========== */
+  const handleBulkDelete = async () => {
+    const days = parseInt(bulkDeleteDays)
+    if (isNaN(days) || days <= 0) return
+
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - days)
+    const cutoffISO = cutoffDate.toISOString()
+
+    const oldRoutes = myRoutes.filter((r) => r.created_at < cutoffISO)
+
+    if (oldRoutes.length === 0) {
+      setBulkDeleteMessage('該当する課題がありません')
+      setTimeout(() => setBulkDeleteMessage(''), 3000)
+      return
     }
-    if (value > 0) {
-      const intensity = value / 5
-      return `rgba(239, 68, 68, ${0.2 + intensity * 0.6})`
+
+    if (!confirm(`${days}日以前の課題 ${oldRoutes.length}件を削除しますか？\n画像・完登記録もすべて削除されます。この操作は元に戻せません。`)) {
+      return
     }
-    return '#f0f0f0'
+
+    setBulkDeleting(true)
+    let deletedCount = 0
+
+    for (const route of oldRoutes) {
+      // R2から画像削除
+      await deleteImage(route.image_url)
+      // DBから課題削除（ascentsはカスケードで消えるか手動削除）
+      await supabase.from('ascents').delete().eq('route_id', route.id)
+      await supabase.from('favorites').delete().eq('route_id', route.id)
+      await supabase.from('routes').delete().eq('id', route.id)
+      deletedCount++
+    }
+
+    setBulkDeleting(false)
+    setBulkDeleteMessage(`${deletedCount}件の課題を削除しました`)
+    setTimeout(() => setBulkDeleteMessage(''), 3000)
+
+    // 一覧を更新
+    setMyRoutes((prev) => prev.filter((r) => r.created_at >= cutoffISO))
   }
 
-  const getFeelingLabel = (value: number) => {
-    if (value <= -4) return 'かなり甘い'
-    if (value <= -2) return '甘い'
-    if (value === -1) return 'やや甘い'
-    if (value === 0) return '妥当'
-    if (value === 1) return 'やや辛い'
-    if (value <= 3) return '辛い'
-    return 'かなり辛い'
+  /* ========== ローディング ========== */
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <div className="text-center">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-text-sub text-sm">読み込み中...</p>
+        </div>
+      </div>
+    )
   }
 
-  if (loading) return <p>読み込み中...</p>
-
+  /* ========== メインUI ========== */
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px' }}>
-      <a href="/" style={{ color: '#4285F4', textDecoration: 'none' }}>← ホームに戻る</a>
+    <div className="min-h-screen bg-bg pb-28">
+      {/* ヘッダー */}
+      <header className="sticky top-0 z-50 bg-card border-b border-border">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center">
+          <a href="/" className="text-text-sub hover:text-primary transition-colors text-sm">
+            ← ホーム
+          </a>
+        </div>
+      </header>
 
-      {/* ニックネーム */}
-      <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#f9f9f9', borderRadius: '12px' }}>
-        {isOwner && editingNickname ? (
-          <div>
-            <input
-              type="text"
-              value={newNickname}
-              onChange={(e) => setNewNickname(e.target.value)}
-              style={{ padding: '8px', fontSize: '16px', width: '100%', borderRadius: '4px', border: '1px solid #ccc' }}
-            />
-            <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-              <button
-                onClick={handleNicknameUpdate}
-                style={{
-                  padding: '6px 16px',
-                  fontSize: '14px',
-                  backgroundColor: '#4285F4',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
+      <div className="max-w-lg mx-auto px-4">
+
+        {/* ニックネーム */}
+        <div className="mt-4 p-4 bg-card rounded-xl border border-border">
+          {isOwner && editingNickname ? (
+            <div>
+              <input
+                type="text"
+                value={newNickname}
+                onChange={(e) => setNewNickname(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-border bg-bg text-text-main text-base focus:outline-none focus:border-primary transition-colors"
+              />
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={handleNicknameUpdate}
+                  className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+                >
+                  保存
+                </button>
+                <button
+                  onClick={() => { setEditingNickname(false); setNewNickname(nickname) }}
+                  className="px-5 py-2 text-sm font-medium bg-card text-text-main border border-border rounded-lg hover:border-primary transition-colors"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-text-main">{nickname}</span>
+              {isOwner && (
+                <button
+                  onClick={() => setEditingNickname(true)}
+                  className="px-3 py-1 text-xs font-medium bg-primary-light text-primary border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors"
+                >
+                  変更
+                </button>
+              )}
+            </div>
+          )}
+          {nicknameMessage && (
+            <p className="mt-2 text-xs text-primary">{nicknameMessage}</p>
+          )}
+        </div>
+
+        {/* 統計 */}
+        <div className="mt-4 flex gap-3">
+          <div className="flex-1 text-center py-4 bg-primary-light rounded-xl border border-primary/10">
+            <p className="text-2xl font-bold text-text-main">{myAscents.length}</p>
+            <p className="text-xs text-text-sub mt-0.5">完登数</p>
+          </div>
+          <div className="flex-1 text-center py-4 bg-primary-light rounded-xl border border-primary/10">
+            <p className="text-2xl font-bold text-text-main">{myRoutes.length}</p>
+            <p className="text-xs text-text-sub mt-0.5">投稿数</p>
+          </div>
+        </div>
+
+        {/* 管理者メニュー */}
+        {isOwner && currentUser?.email === ADMIN_EMAIL && (
+          <div className="mt-4 p-4 bg-card rounded-xl border border-border">
+            <p className="text-xs font-bold text-text-sub mb-3">管理者メニュー</p>
+            <div className="flex gap-3">
+              <a
+                href="/admin/gyms"
+                className="flex-1 py-2.5 text-center text-sm font-medium bg-primary-light text-primary border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors"
               >
-                保存
-              </button>
-              <button
-                onClick={() => { setEditingNickname(false); setNewNickname(nickname) }}
-                style={{
-                  padding: '6px 16px',
-                  fontSize: '14px',
-                  backgroundColor: 'white',
-                  color: '#333',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                キャンセル
-              </button>
+                ジム・壁管理
+              </a>
             </div>
           </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '22px', fontWeight: 'bold' }}>{nickname}</span>
-            {isOwner && (
-              <button
-                onClick={() => setEditingNickname(true)}
-                style={{
-                  padding: '4px 12px',
-                  fontSize: '12px',
-                  backgroundColor: 'white',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                変更
-              </button>
+        )}
+
+        {/* タブ */}
+        <div className="mt-6 flex border-b-2 border-border">
+          <button
+            onClick={() => setActiveTab('ascents')}
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${
+              activeTab === 'ascents'
+                ? 'text-primary border-b-2 border-primary -mb-[2px]'
+                : 'text-text-sub'
+            }`}
+          >
+            完登履歴
+          </button>
+          <button
+            onClick={() => setActiveTab('routes')}
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${
+              activeTab === 'routes'
+                ? 'text-primary border-b-2 border-primary -mb-[2px]'
+                : 'text-text-sub'
+            }`}
+          >
+            投稿した課題
+          </button>
+        </div>
+
+        {/* 完登履歴 */}
+        {activeTab === 'ascents' && (
+          <div className="mt-4">
+            {myAscents.length === 0 ? (
+              <p className="text-center text-text-sub text-sm py-12">まだ完登記録がありません</p>
+            ) : (
+              myAscents.map((ascent) => (
+                <a
+                  key={ascent.id}
+                  href={`/routes/${ascent.route_id}`}
+                  className="flex gap-3 py-3 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
+                >
+                  <img
+                    src={ascent.route_image_url}
+                    alt="課題"
+                    className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-base font-bold text-text-main">{ascent.route_grade}</span>
+                      <div className="flex items-center gap-1.5">
+                        {ascent.recommended && <span className="text-sm">👍</span>}
+                      </div>
+                    </div>
+                    <p className="text-xs text-text-sub mt-0.5 truncate">
+                      {ascent.gym_name} / {ascent.wall_name}
+                    </p>
+                    <p className="text-[11px] text-text-sub mt-0.5">
+                      {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
+                    </p>
+                  </div>
+                </a>
+              ))
             )}
           </div>
         )}
-        {nicknameMessage && <p style={{ marginTop: '4px', fontSize: '12px', color: '#4285F4' }}>{nicknameMessage}</p>}
-      </div>
 
-      {/* 統計 */}
-      <div style={{ marginTop: '16px', display: 'flex', gap: '16px' }}>
-        <div style={{ flex: 1, textAlign: 'center', padding: '16px', backgroundColor: '#f0f8ff', borderRadius: '12px' }}>
-          <p style={{ fontSize: '28px', fontWeight: 'bold' }}>{myAscents.length}</p>
-          <p style={{ fontSize: '12px', color: '#666' }}>完登数</p>
-        </div>
-        <div style={{ flex: 1, textAlign: 'center', padding: '16px', backgroundColor: '#fff0f0', borderRadius: '12px' }}>
-          <p style={{ fontSize: '28px', fontWeight: 'bold' }}>{myRoutes.length}</p>
-          <p style={{ fontSize: '12px', color: '#666' }}>投稿数</p>
-        </div>
-      </div>
-
-      {/* タブ */}
-      <div style={{ marginTop: '24px', display: 'flex', borderBottom: '2px solid #eee' }}>
-        <button
-          onClick={() => setActiveTab('ascents')}
-          style={{
-            flex: 1,
-            padding: '12px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            border: 'none',
-            backgroundColor: 'transparent',
-            borderBottom: activeTab === 'ascents' ? '2px solid #4285F4' : '2px solid transparent',
-            color: activeTab === 'ascents' ? '#4285F4' : '#999',
-            cursor: 'pointer',
-          }}
-        >
-          完登履歴
-        </button>
-        <button
-          onClick={() => setActiveTab('routes')}
-          style={{
-            flex: 1,
-            padding: '12px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            border: 'none',
-            backgroundColor: 'transparent',
-            borderBottom: activeTab === 'routes' ? '2px solid #4285F4' : '2px solid transparent',
-            color: activeTab === 'routes' ? '#4285F4' : '#999',
-            cursor: 'pointer',
-          }}
-        >
-          投稿した課題
-        </button>
-      </div>
-
-      {/* 完登履歴 */}
-      {activeTab === 'ascents' && (
-        <div style={{ marginTop: '16px' }}>
-          {myAscents.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#999' }}>まだ完登記録がありません</p>
-          ) : (
-            myAscents.map((ascent) => (
-              <a
-                key={ascent.id}
-                href={`/routes/${ascent.route_id}`}
-                style={{
-                  display: 'flex',
-                  gap: '12px',
-                  padding: '12px 0',
-                  borderBottom: '1px solid #f0f0f0',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                }}
-              >
-                <img
-                  src={ascent.route_image_url}
-                  alt="課題"
-                  style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{ascent.route_grade}</span>
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      {ascent.recommended && (
-                        <span style={{ fontSize: '14px' }}>👍</span>
-                      )}
-                      <span
-                        style={{
-                          padding: '2px 8px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          backgroundColor: getFeelingColor(ascent.feeling),
-                        }}
-                      >
-                        {getFeelingLabel(ascent.feeling)}
-                      </span>
+        {/* 投稿した課題 */}
+        {activeTab === 'routes' && (
+          <div className="mt-4">
+            {myRoutes.length === 0 ? (
+              <p className="text-center text-text-sub text-sm py-12">まだ課題を投稿していません</p>
+            ) : (
+              <>
+                {myRoutes.map((route) => (
+                  <a
+                    key={route.id}
+                    href={`/routes/${route.id}`}
+                    className="flex gap-3 py-3 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
+                  >
+                    <img
+                      src={route.image_url}
+                      alt="課題"
+                      className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-base font-bold text-text-main">{route.grade}</span>
+                      <p className="text-xs text-text-sub mt-0.5 truncate">
+                        {route.gym_name} / {route.wall_name}
+                      </p>
+                      <p className="text-[11px] text-text-sub mt-0.5">
+                        {new Date(route.created_at).toLocaleDateString('ja-JP')}
+                      </p>
                     </div>
-                  </div>
-                  <p style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-                    {ascent.gym_name} / {ascent.wall_name}
-                  </p>
-                  <p style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                    {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
-                  </p>
-                </div>
-              </a>
-            ))
-          )}
-        </div>
-      )}
+                  </a>
+                ))}
 
-      {/* 投稿した課題 */}
-      {activeTab === 'routes' && (
-        <div style={{ marginTop: '16px' }}>
-          {myRoutes.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#999' }}>まだ課題を投稿していません</p>
-          ) : (
-            myRoutes.map((route) => (
-              <a
-                key={route.id}
-                href={`/routes/${route.id}`}
-                style={{
-                  display: 'flex',
-                  gap: '12px',
-                  padding: '12px 0',
-                  borderBottom: '1px solid #f0f0f0',
-                  textDecoration: 'none',
-                  color: 'inherit',
-                }}
-              >
-                <img
-                  src={route.image_url}
-                  alt="課題"
-                  style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{route.grade}</span>
-                  <p style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-                    {route.gym_name} / {route.wall_name}
-                  </p>
-                  <p style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
-                    {new Date(route.created_at).toLocaleDateString('ja-JP')}
-                  </p>
-                </div>
-              </a>
-            ))
-          )}
-        </div>
-      )}
+                {/* 一括削除（本人のみ） */}
+                {isOwner && (
+                  <div className="mt-6 p-4 bg-card rounded-xl border border-border">
+                    <p className="text-xs font-bold text-text-main mb-3">古い投稿の一括削除</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={bulkDeleteDays}
+                        onChange={(e) => setBulkDeleteDays(e.target.value)}
+                        min="1"
+                        className="w-20 px-3 py-2 rounded-lg border border-border bg-bg text-text-main text-sm text-center focus:outline-none focus:border-primary transition-colors"
+                      />
+                      <span className="text-sm text-text-sub">日以前の課題を</span>
+                      <button
+                        onClick={handleBulkDelete}
+                        disabled={bulkDeleting}
+                        className={`px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
+                          bulkDeleting
+                            ? 'bg-border text-text-sub cursor-not-allowed'
+                            : 'bg-red-50 text-red-500 border border-red-200 hover:bg-red-100'
+                        }`}
+                      >
+                        {bulkDeleting ? '削除中...' : '一括削除'}
+                      </button>
+                    </div>
+                    {bulkDeleteMessage && (
+                      <p className="mt-2 text-xs text-primary">{bulkDeleteMessage}</p>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
