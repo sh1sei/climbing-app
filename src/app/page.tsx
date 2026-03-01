@@ -371,7 +371,7 @@ export default function Home() {
       <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
           <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-text-sub text-sm">読み込み中...</p>
+          <p className="text-text-sub text-lg">読み込み中...</p>
         </div>
       </div>
     )
@@ -379,22 +379,22 @@ export default function Home() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-32">
+    <div className="min-h-screen bg-bg pb-36">
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full px-4 h-14 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-primary tracking-wide">カベログ</h1>
+        <div className="w-full px-4 h-16 flex items-center justify-between">
+          <h1 className="text-4xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
             <a
               href={`/user/${user.id}`}
-              className="text-base text-text-sub hover:text-primary transition-colors"
+              className="text-lg text-text-sub hover:text-primary transition-colors"
             >
               {nickname}
             </a>
           ) : (
             <a
               href="/login"
-              className="text-base text-primary font-medium hover:text-primary-dark transition-colors"
+              className="text-lg text-primary font-medium hover:text-primary-dark transition-colors"
             >
               ログイン
             </a>
@@ -403,15 +403,15 @@ export default function Home() {
       </header>
 
       {/* ===== フィルターバー（横スクロール） ===== */}
-      <div className="sticky top-14 z-40 bg-card border-b border-border overflow-visible">
+      <div className="sticky top-16 z-40 bg-card border-b border-border overflow-visible">
         <div className="w-full overflow-visible">
-          <div ref={filterBarRef} className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div ref={filterBarRef} className="flex items-center gap-2.5 px-4 py-3 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
             {/* グレードFrom */}
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeFrom')}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                className={`px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                   gradeFrom
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -420,10 +420,10 @@ export default function Home() {
                 {gradeFrom || '5級-'}
               </button>
               {activeDropdown === 'gradeFrom' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[80px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[160px]">
                   <button
                     onClick={() => handleGradeFromChange('')}
-                    className="block w-full px-4 py-2 text-xs text-left hover:bg-primary-light"
+                    className="block w-full px-4 py-3 text-base text-left hover:bg-primary-light"
                   >
                     下限なし
                   </button>
@@ -431,7 +431,7 @@ export default function Home() {
                     <button
                       key={g}
                       onClick={() => handleGradeFromChange(g)}
-                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light ${
+                      className={`block w-full px-4 py-3 text-base text-left hover:bg-primary-light ${
                         gradeFrom === g ? 'bg-primary-light text-primary font-bold' : ''
                       }`}
                     >
@@ -442,13 +442,13 @@ export default function Home() {
               )}
             </div>
 
-            <span className="text-text-sub text-xs shrink-0">〜</span>
+            <span className="text-text-sub text-lg shrink-0">〜</span>
 
             {/* グレードTo */}
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeTo')}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                className={`px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                   gradeTo
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -457,10 +457,10 @@ export default function Home() {
                 {gradeTo || '三段+'}
               </button>
               {activeDropdown === 'gradeTo' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[80px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[160px]">
                   <button
                     onClick={() => handleGradeToChange('')}
-                    className="block w-full px-4 py-2 text-xs text-left hover:bg-primary-light"
+                    className="block w-full px-4 py-3 text-base text-left hover:bg-primary-light"
                   >
                     上限なし
                   </button>
@@ -468,7 +468,7 @@ export default function Home() {
                     <button
                       key={g}
                       onClick={() => handleGradeToChange(g)}
-                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light ${
+                      className={`block w-full px-4 py-3 text-base text-left hover:bg-primary-light ${
                         gradeTo === g ? 'bg-primary-light text-primary font-bold' : ''
                       }`}
                     >
@@ -483,17 +483,17 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('sort')}
-                className="px-4 py-2 rounded-full text-sm font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
+                className="px-5 py-2.5 rounded-full text-lg font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
               >
                 {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
               </button>
               {activeDropdown === 'sort' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[160px]">
                   {SORT_OPTIONS.map(opt => (
                     <button
                       key={opt.value}
                       onClick={() => handleSortChange(opt.value)}
-                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                      className={`block w-full px-4 py-3 text-base text-left hover:bg-primary-light whitespace-nowrap ${
                         sortType === opt.value ? 'bg-primary-light text-primary font-bold' : ''
                       }`}
                     >
@@ -508,7 +508,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gym')}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                className={`px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                   selectedGymId !== 'all'
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -517,10 +517,10 @@ export default function Home() {
                 {selectedGymName} ▼
               </button>
               {activeDropdown === 'gym' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[120px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[160px]">
                   <button
                     onClick={() => handleGymChange('all')}
-                    className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                    className={`block w-full px-4 py-3 text-base text-left hover:bg-primary-light whitespace-nowrap ${
                       selectedGymId === 'all' ? 'bg-primary-light text-primary font-bold' : ''
                     }`}
                   >
@@ -530,7 +530,7 @@ export default function Home() {
                     <button
                       key={gym.id}
                       onClick={() => handleGymChange(gym.id)}
-                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                      className={`block w-full px-4 py-3 text-base text-left hover:bg-primary-light whitespace-nowrap ${
                         selectedGymId === gym.id ? 'bg-primary-light text-primary font-bold' : ''
                       }`}
                     >
@@ -545,7 +545,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('wall')}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                className={`px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                   selectedWallId !== 'all'
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -554,10 +554,10 @@ export default function Home() {
                 {selectedWallName} ▼
               </button>
               {activeDropdown === 'wall' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto min-w-[100px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto min-w-[180px]">
                   <button
                     onClick={() => handleWallChange('all')}
-                    className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                    className={`block w-full px-4 py-3 text-base text-left hover:bg-primary-light whitespace-nowrap ${
                       selectedWallId === 'all' ? 'bg-primary-light text-primary font-bold' : ''
                     }`}
                   >
@@ -567,7 +567,7 @@ export default function Home() {
                     <button
                       key={wall.id}
                       onClick={() => handleWallChange(wall.id)}
-                      className={`block w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                      className={`block w-full px-4 py-3 text-base text-left hover:bg-primary-light whitespace-nowrap ${
                         selectedWallId === wall.id ? 'bg-primary-light text-primary font-bold' : ''
                       }`}
                     >
@@ -582,7 +582,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('holdType')}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                className={`px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                   activeHoldTypes.length > 0
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -591,16 +591,16 @@ export default function Home() {
                 ホールド ▼
               </button>
               {activeDropdown === 'holdType' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[160px]">
                   {HOLD_TYPES.map(ht => (
                     <button
                       key={ht}
                       onClick={() => toggleHoldType(ht)}
-                      className={`flex items-center gap-2 w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                      className={`flex items-center gap-2 w-full px-4 py-3 text-base text-left hover:bg-primary-light whitespace-nowrap ${
                         activeHoldTypes.includes(ht) ? 'text-primary font-bold' : ''
                       }`}
                     >
-                      <span className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] ${
+                      <span className={`w-5 h-5 rounded border flex items-center justify-center text-xs ${
                         activeHoldTypes.includes(ht)
                           ? 'bg-primary border-primary text-white'
                           : 'border-border bg-white'
@@ -618,7 +618,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('style')}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                className={`px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                   activeStyles.length > 0
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -627,16 +627,16 @@ export default function Home() {
                 系統 ▼
               </button>
               {activeDropdown === 'style' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[140px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                   {STYLES.map(s => (
                     <button
                       key={s}
                       onClick={() => toggleStyle(s)}
-                      className={`flex items-center gap-2 w-full px-4 py-2 text-xs text-left hover:bg-primary-light whitespace-nowrap ${
+                      className={`flex items-center gap-2 w-full px-4 py-3 text-base text-left hover:bg-primary-light whitespace-nowrap ${
                         activeStyles.includes(s) ? 'text-primary font-bold' : ''
                       }`}
                     >
-                      <span className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] ${
+                      <span className={`w-5 h-5 rounded border flex items-center justify-center text-xs ${
                         activeStyles.includes(s)
                           ? 'bg-primary border-primary text-white'
                           : 'border-border bg-white'
@@ -653,7 +653,7 @@ export default function Home() {
             {/* キャンパ */}
             <button
               onClick={() => toggleCampus()}
-              className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+              className={`shrink-0 px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                 isCampus
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -666,7 +666,7 @@ export default function Home() {
             {user && (
               <button
                 onClick={() => toggleHideCompleted()}
-                className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors whitespace-nowrap ${
+                className={`shrink-0 px-5 py-2.5 rounded-full text-lg font-medium border transition-colors whitespace-nowrap ${
                   hideCompleted
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -682,7 +682,7 @@ export default function Home() {
       {/* ===== 課題一覧（2列グリッド） ===== */}
       <main className="w-full pt-[2px]">
         {filteredRoutes.length === 0 ? (
-          <p className="text-center text-text-sub py-12 text-sm">
+          <p className="text-center text-text-sub py-12 text-lg">
             {routes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
           </p>
         ) : (
@@ -700,15 +700,15 @@ export default function Home() {
                     className="w-full h-full object-cover object-[center_70%]"
                   />
                 </div>
-                <div className="px-2.5 py-2">
+                <div className="px-3 py-2.5">
                   <div className="flex items-center justify-between">
-                    <p className="text-base font-bold text-text-main">{route.grade}</p>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-text-sub">♡{route.favorite_count}</span>
-                      <span className="text-xs text-text-sub">✓{route.ascent_count}</span>
+                    <p className="text-xl font-bold text-text-main">{route.grade}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base text-text-sub">♡{route.favorite_count}</span>
+                      <span className="text-base text-text-sub">✓{route.ascent_count}</span>
                     </div>
                   </div>
-                  <p className="text-xs text-text-sub mt-0.5 truncate">
+                  <p className="text-base text-text-sub mt-0.5 truncate">
                     {route.poster_nickname}
                   </p>
                 </div>
