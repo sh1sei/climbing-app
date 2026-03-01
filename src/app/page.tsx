@@ -370,7 +370,7 @@ export default function Home() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-text-sub text-2xl">読み込み中...</p>
         </div>
       </div>
@@ -488,7 +488,7 @@ export default function Home() {
                 {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
               </button>
               {activeDropdown === 'sort' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[200px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[220px]">
                   {SORT_OPTIONS.map(opt => (
                     <button
                       key={opt.value}
@@ -517,7 +517,7 @@ export default function Home() {
                 {selectedGymName} ▼
               </button>
               {activeDropdown === 'gym' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[200px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[220px]">
                   <button
                     onClick={() => handleGymChange('all')}
                     className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
@@ -554,7 +554,7 @@ export default function Home() {
                 {selectedWallName} ▼
               </button>
               {activeDropdown === 'wall' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[220px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[200px]">
                   <button
                     onClick={() => handleWallChange('all')}
                     className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
@@ -591,12 +591,12 @@ export default function Home() {
                 ホールド ▼
               </button>
               {activeDropdown === 'holdType' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[200px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[220px]">
                   {HOLD_TYPES.map(ht => (
                     <button
                       key={ht}
                       onClick={() => toggleHoldType(ht)}
-                      className={`flex items-center gap-2 w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
+                      className={`flex items-center gap-3 w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
                         activeHoldTypes.includes(ht) ? 'text-primary font-bold' : ''
                       }`}
                     >
@@ -627,12 +627,12 @@ export default function Home() {
                 系統 ▼
               </button>
               {activeDropdown === 'style' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[220px]">
+                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[260px]">
                   {STYLES.map(s => (
                     <button
                       key={s}
                       onClick={() => toggleStyle(s)}
-                      className={`flex items-center gap-2 w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
+                      className={`flex items-center gap-3 w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
                         activeStyles.includes(s) ? 'text-primary font-bold' : ''
                       }`}
                     >
@@ -702,7 +702,7 @@ export default function Home() {
                 </div>
                 <div className="px-3 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <p className="text-2xl font-bold text-text-main">{route.grade}</p>
+                    <p className="text-2xl font-bold text-text-main shrink-0">{route.grade}</p>
                     <p className="text-xl text-text-sub truncate">{route.poster_nickname}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-2">
