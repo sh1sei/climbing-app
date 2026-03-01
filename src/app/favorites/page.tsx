@@ -88,41 +88,37 @@ export default function FavoritesPage() {
         </div>
       </header>
 
-      <main className="w-full max-w-screen-sm mx-auto px-4 pt-4">
+      <main className="w-full max-w-screen-sm mx-auto px-1.5 pt-1.5">
         {routes.length === 0 ? (
           <p className="text-center text-text-sub text-sm py-16">
             まだ課題を保存していません
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-1.5">
             {routes.map((route) => (
               <a
                 key={route.id}
                 href={`/routes/${route.id}`}
-                className="block bg-card rounded-xl overflow-hidden border border-border hover:shadow-md transition-shadow"
+                className="block bg-card overflow-hidden rounded-md"
               >
-                <div className="aspect-square overflow-hidden">
+                <div className="aspect-[20/6] overflow-hidden">
                   <img
                     src={route.image_url}
                     alt="課題写真"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-[center_70%]"
                   />
                 </div>
-                <div className="p-2.5">
-                  <p className="text-xs text-text-sub truncate">
+                <div className="px-2 py-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[15px] font-bold text-text-main">{route.grade}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-text-sub">♡{route.favorite_count}</span>
+                      <span className="text-xs text-text-sub">✓{route.ascent_count}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-text-sub mt-0.5 truncate">
                     {route.poster_nickname}
                   </p>
-                  <p className="text-base font-bold text-text-main mt-0.5">
-                    {route.grade}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-xs text-text-sub flex items-center gap-0.5">
-                      ♡ {route.favorite_count}
-                    </span>
-                    <span className="text-xs text-text-sub flex items-center gap-0.5">
-                      ✓ {route.ascent_count}
-                    </span>
-                  </div>
                 </div>
               </a>
             ))}
