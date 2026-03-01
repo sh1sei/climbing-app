@@ -379,7 +379,7 @@ export default function Home() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-36">
+    <div className="min-h-screen bg-bg pb-40">
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="w-full px-4 h-16 flex items-center justify-between">
@@ -700,17 +700,15 @@ export default function Home() {
                     className="w-full h-full object-cover object-[center_70%]"
                   />
                 </div>
-                <div className="px-3 py-2.5">
-                  <div className="flex items-center justify-between">
+                <div className="px-3 py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
                     <p className="text-xl font-bold text-text-main">{route.grade}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-base text-text-sub">♡{route.favorite_count}</span>
-                      <span className="text-base text-text-sub">✓{route.ascent_count}</span>
-                    </div>
+                    <p className="text-base text-text-sub truncate">{route.poster_nickname}</p>
                   </div>
-                  <p className="text-base text-text-sub mt-0.5 truncate">
-                    {route.poster_nickname}
-                  </p>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <span className="text-base text-text-sub">♡{route.favorite_count}</span>
+                    <span className="text-base text-text-sub">✓{route.ascent_count}</span>
+                  </div>
                 </div>
               </a>
             ))}
