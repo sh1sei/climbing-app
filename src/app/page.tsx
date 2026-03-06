@@ -706,7 +706,7 @@ export default function Home() {
                 href={`/routes/${route.id}`}
                 className="block bg-card overflow-hidden"
               >
-                <div className="aspect-[7/2] overflow-hidden">
+                <div className="aspect-[3/2] overflow-hidden">
                   <img
                     src={route.image_url}
                     alt="課題写真"
