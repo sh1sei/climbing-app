@@ -410,7 +410,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeFrom')}
-                className={`px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                   gradeFrom
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -447,7 +447,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gradeTo')}
-                className={`px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                   gradeTo
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -482,7 +482,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('sort')}
-                className="px-8 py-4 rounded-full text-3xl font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
+                className="px-10 py-6 rounded-full text-5xl font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
               >
                 {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
               </button>
@@ -507,7 +507,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('gym')}
-                className={`px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                   selectedGymId !== 'all'
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -544,7 +544,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('wall')}
-                className={`px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                   selectedWallId !== 'all'
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -581,7 +581,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('holdType')}
-                className={`px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                   activeHoldTypes.length > 0
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -617,7 +617,7 @@ export default function Home() {
             <div className="relative shrink-0">
               <button
                 onClick={() => toggleDropdown('style')}
-                className={`px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                   activeStyles.length > 0
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -652,7 +652,7 @@ export default function Home() {
             {/* キャンパ */}
             <button
               onClick={() => toggleCampus()}
-              className={`shrink-0 px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+              className={`shrink-0 px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                 isCampus
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -665,7 +665,7 @@ export default function Home() {
             {user && (
               <button
                 onClick={() => toggleHideCompleted()}
-                className={`shrink-0 px-8 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap ${
+                className={`shrink-0 px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
                   hideCompleted
                     ? 'bg-primary text-white border-primary'
                     : 'bg-primary-light text-text-main border-border hover:border-primary'
