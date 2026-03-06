@@ -405,7 +405,7 @@ export default function Home() {
       {/* ===== フィルターバー（横スクロール） ===== */}
       <div className="sticky top-24 z-40 bg-card border-b border-border overflow-visible">
         <div className="w-full overflow-visible">
-          <div ref={filterBarRef} className="flex items-center gap-3 px-4 py-5 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div ref={filterBarRef} className="flex items-center gap-3 px-4 py-4 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {/* グレードFrom */}
             <div className="relative shrink-0">
               <button
