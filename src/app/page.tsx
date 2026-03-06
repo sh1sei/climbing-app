@@ -379,7 +379,7 @@ export default function Home() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-48">
+    <div className="min-h-screen bg-bg pb-48 overflow-x-hidden">
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="w-full px-4 h-24 flex items-center justify-between">
@@ -403,7 +403,7 @@ export default function Home() {
       </header>
 
       {/* ===== フィルターバー（横スクロール） ===== */}
-      <div className="sticky top-24 z-40 bg-card border-b border-border overflow-x-clip overflow-y-visible">
+      <div className="sticky top-24 z-40 bg-card border-b border-border">
         <div className="w-full">
           <div ref={filterBarRef} className="flex items-center gap-3 px-4 py-5 overflow-x-auto overflow-y-visible scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
             {/* グレードFrom */}
