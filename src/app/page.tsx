@@ -110,7 +110,7 @@ function FixedDropdown({
 
   return (
     <div
-      className="fixed bg-card border border-border rounded-lg shadow-lg max-h-[60vh] overflow-y-auto min-w-[320px]"
+      className="fixed bg-card border border-border rounded-lg shadow-lg max-h-[100vh] overflow-y-auto min-w-[400px]"
       style={{ top: pos.top, left: pos.left, zIndex: 9999 }}
     >
       {children}
