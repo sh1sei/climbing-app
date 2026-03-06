@@ -110,7 +110,7 @@ function FixedDropdown({
 
   return (
     <div
-      className="fixed bg-card border border-border rounded-lg shadow-lg max-h-80 overflow-y-auto min-w-[240px]"
+      className="fixed bg-card border border-border rounded-lg shadow-lg max-h-[60vh] overflow-y-auto min-w-[320px]"
       style={{ top: pos.top, left: pos.left, zIndex: 9999 }}
     >
       {children}
@@ -424,14 +424,14 @@ export default function Home() {
 
   /* ===== ドロップダウンの選択肢スタイル ===== */
   const dropdownItemClass = (isActive: boolean) =>
-    `block w-full px-6 py-5 text-2xl text-left hover:bg-primary-light whitespace-nowrap ${
+    `block w-full px-8 py-6 text-5xl text-left hover:bg-primary-light whitespace-nowrap ${
       isActive ? 'bg-primary-light text-primary font-bold' : ''
-    }`
+  }`
 
   const checkboxItemClass = (isActive: boolean) =>
-    `flex items-center gap-3 w-full px-6 py-5 text-2xl text-left hover:bg-primary-light whitespace-nowrap ${
+    `flex items-center gap-4 w-full px-8 py-6 text-5xl text-left hover:bg-primary-light whitespace-nowrap ${
       isActive ? 'text-primary font-bold' : ''
-    }`
+  }`
 
   /* ========== ローディング ========== */
   if (loading) {
@@ -693,7 +693,7 @@ export default function Home() {
       </FixedDropdown>
 
       {/* ===== 課題一覧（2列グリッド） ===== */}
-      <main className="w-full pt-[2px]">
+      <main className="w-full pt-4">
         {filteredRoutes.length === 0 ? (
           <p className="text-center text-text-sub py-12 text-2xl">
             {routes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
