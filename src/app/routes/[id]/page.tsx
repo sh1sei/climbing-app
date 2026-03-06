@@ -364,7 +364,7 @@ export default function RouteDetailPage() {
         </div>
       )}
 
-      <div className="w-full max-w-screen-sm mx-auto px-4">
+      <div className="w-full px-4">
 
         {/* ===== 3. 投稿者名、グレード、お気に入り数、完登者数 ===== */}
         <div className="pt-4">
