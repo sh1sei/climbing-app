@@ -83,6 +83,41 @@ function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c
 }
 
+/* ========== FixedDropdown コンポーネント ========== */
+
+function FixedDropdown({
+  isOpen,
+  buttonRef,
+  children,
+}: {
+  isOpen: boolean
+  buttonRef: React.RefObject<HTMLButtonElement | null>
+  children: React.ReactNode
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setPos({
+        top: rect.bottom + 4,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - 240)),
+      })
+    }
+  }, [isOpen, buttonRef])
+
+  if (!isOpen || !pos) return null
+
+  return (
+    <div
+      className="fixed bg-card border border-border rounded-lg shadow-lg max-h-80 overflow-y-auto min-w-[240px]"
+      style={{ top: pos.top, left: pos.left, zIndex: 9999 }}
+    >
+      {children}
+    </div>
+  )
+}
+
 /* ========== コンポーネント ========== */
 
 export default function Home() {
@@ -106,8 +141,17 @@ export default function Home() {
   const [hideCompleted, setHideCompleted] = useState(false)
   const [myAscentRouteIds, setMyAscentRouteIds] = useState<Set<string>>(new Set())
 
-  // ドロップダウン状態（1つだけ開く or null）
+  // ドロップダウン状態
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+
+  // 各ドロップダウンボタンのref
+  const gradeFromRef = useRef<HTMLButtonElement | null>(null)
+  const gradeToRef = useRef<HTMLButtonElement | null>(null)
+  const sortRef = useRef<HTMLButtonElement | null>(null)
+  const gymRef = useRef<HTMLButtonElement | null>(null)
+  const wallRef = useRef<HTMLButtonElement | null>(null)
+  const holdTypeRef = useRef<HTMLButtonElement | null>(null)
+  const styleRef = useRef<HTMLButtonElement | null>(null)
 
   const supabase = createClient()
   const router = useRouter()
@@ -186,22 +230,35 @@ export default function Home() {
   }, [])
 
   /* ===== ドロップダウン制御 ===== */
-  const filterBarRef = useRef<HTMLDivElement>(null)
-
   const toggleDropdown = useCallback((name: string) => {
     setActiveDropdown(prev => prev === name ? null : name)
   }, [])
 
-  // フィルターバーの外側クリックでドロップダウンを閉じる
+  // ドロップダウン外クリックで閉じる
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (filterBarRef.current && !filterBarRef.current.contains(e.target as Node)) {
+    const handleClickOutside = (e: Event) => {
+      if (activeDropdown) {
+        const target = e.target as HTMLElement
+        if (target.closest('[data-dropdown-menu]')) return
+        if (target.closest('[data-dropdown-button]')) return
         setActiveDropdown(null)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('touchstart', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [activeDropdown])
+
+  // スクロール時にドロップダウンを閉じる
+  useEffect(() => {
+    if (!activeDropdown) return
+    const handleScroll = () => setActiveDropdown(null)
+    window.addEventListener('scroll', handleScroll, true)
+    return () => window.removeEventListener('scroll', handleScroll, true)
+  }, [activeDropdown])
 
   /* ===== データ取得 ===== */
   const fetchRoutes = async (gymId?: string) => {
@@ -365,6 +422,17 @@ export default function Home() {
     ? '壁'
     : currentWalls.find(w => w.id === selectedWallId)?.name || '壁'
 
+  /* ===== ドロップダウンの選択肢スタイル ===== */
+  const dropdownItemClass = (isActive: boolean) =>
+    `block w-full px-6 py-5 text-2xl text-left hover:bg-primary-light whitespace-nowrap ${
+      isActive ? 'bg-primary-light text-primary font-bold' : ''
+    }`
+
+  const checkboxItemClass = (isActive: boolean) =>
+    `flex items-center gap-3 w-full px-6 py-5 text-2xl text-left hover:bg-primary-light whitespace-nowrap ${
+      isActive ? 'text-primary font-bold' : ''
+    }`
+
   /* ========== ローディング ========== */
   if (loading) {
     return (
@@ -376,6 +444,11 @@ export default function Home() {
       </div>
     )
   }
+
+  /* ===== フィルターボタン共通スタイル ===== */
+  const filterBtnBase = 'px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap'
+  const filterBtnActive = 'bg-primary text-white border-primary'
+  const filterBtnInactive = 'bg-primary-light text-text-main border-border hover:border-primary'
 
   /* ========== メインUI ========== */
   return (
@@ -403,280 +476,221 @@ export default function Home() {
       </header>
 
       {/* ===== フィルターバー（横スクロール） ===== */}
-      <div className="sticky top-24 z-40 bg-card border-b border-border overflow-visible">
-        <div className="w-full overflow-visible">
-          <div ref={filterBarRef} className="flex items-center gap-3 px-4 py-4 overflow-x-auto overflow-y-visible" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {/* グレードFrom */}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => toggleDropdown('gradeFrom')}
-                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                  gradeFrom
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-primary-light text-text-main border-border hover:border-primary'
-                }`}
-              >
-                {gradeFrom || '5級-'}
-              </button>
-              {activeDropdown === 'gradeFrom' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[200px]">
-                  <button
-                    onClick={() => handleGradeFromChange('')}
-                    className="block w-full px-5 py-4 text-xl text-left hover:bg-primary-light"
-                  >
-                    下限なし
-                  </button>
-                  {GRADES.map(g => (
-                    <button
-                      key={g}
-                      onClick={() => handleGradeFromChange(g)}
-                      className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light ${
-                        gradeFrom === g ? 'bg-primary-light text-primary font-bold' : ''
-                      }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+      <div className="sticky top-24 z-40 bg-card border-b border-border">
+        <div className="flex items-center gap-3 px-4 py-5 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
 
-            <span className="text-text-sub text-2xl shrink-0">〜</span>
+          {/* グレードFrom */}
+          <button
+            ref={gradeFromRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('gradeFrom')}
+            className={`shrink-0 ${filterBtnBase} ${
+              gradeFrom ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {gradeFrom || '5級-'}
+          </button>
 
-            {/* グレードTo */}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => toggleDropdown('gradeTo')}
-                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                  gradeTo
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-primary-light text-text-main border-border hover:border-primary'
-                }`}
-              >
-                {gradeTo || '三段+'}
-              </button>
-              {activeDropdown === 'gradeTo' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[200px]">
-                  <button
-                    onClick={() => handleGradeToChange('')}
-                    className="block w-full px-5 py-4 text-xl text-left hover:bg-primary-light"
-                  >
-                    上限なし
-                  </button>
-                  {GRADES.map(g => (
-                    <button
-                      key={g}
-                      onClick={() => handleGradeToChange(g)}
-                      className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light ${
-                        gradeTo === g ? 'bg-primary-light text-primary font-bold' : ''
-                      }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <span className="text-text-sub text-3xl shrink-0">〜</span>
 
-            {/* ソート */}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => toggleDropdown('sort')}
-                className="px-10 py-6 rounded-full text-5xl font-medium border bg-primary-light text-text-main border-border hover:border-primary transition-colors whitespace-nowrap"
-              >
-                {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
-              </button>
-              {activeDropdown === 'sort' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[220px]">
-                  {SORT_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      onClick={() => handleSortChange(opt.value)}
-                      className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
-                        sortType === opt.value ? 'bg-primary-light text-primary font-bold' : ''
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* グレードTo */}
+          <button
+            ref={gradeToRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('gradeTo')}
+            className={`shrink-0 ${filterBtnBase} ${
+              gradeTo ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {gradeTo || '三段+'}
+          </button>
 
-            {/* ジム */}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => toggleDropdown('gym')}
-                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                  selectedGymId !== 'all'
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-primary-light text-text-main border-border hover:border-primary'
-                }`}
-              >
-                {selectedGymName} ▼
-              </button>
-              {activeDropdown === 'gym' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[220px]">
-                  <button
-                    onClick={() => handleGymChange('all')}
-                    className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
-                      selectedGymId === 'all' ? 'bg-primary-light text-primary font-bold' : ''
-                    }`}
-                  >
-                    すべて
-                  </button>
-                  {gyms.map(gym => (
-                    <button
-                      key={gym.id}
-                      onClick={() => handleGymChange(gym.id)}
-                      className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
-                        selectedGymId === gym.id ? 'bg-primary-light text-primary font-bold' : ''
-                      }`}
-                    >
-                      {gym.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* ソート */}
+          <button
+            ref={sortRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('sort')}
+            className={`shrink-0 ${filterBtnBase} ${filterBtnInactive}`}
+          >
+            {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
+          </button>
 
-            {/* 壁 */}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => toggleDropdown('wall')}
-                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                  selectedWallId !== 'all'
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-primary-light text-text-main border-border hover:border-primary'
-                }`}
-              >
-                {selectedWallName} ▼
-              </button>
-              {activeDropdown === 'wall' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto min-w-[200px]">
-                  <button
-                    onClick={() => handleWallChange('all')}
-                    className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
-                      selectedWallId === 'all' ? 'bg-primary-light text-primary font-bold' : ''
-                    }`}
-                  >
-                    すべて
-                  </button>
-                  {currentWalls.map(wall => (
-                    <button
-                      key={wall.id}
-                      onClick={() => handleWallChange(wall.id)}
-                      className={`block w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
-                        selectedWallId === wall.id ? 'bg-primary-light text-primary font-bold' : ''
-                      }`}
-                    >
-                      {wall.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* ジム */}
+          <button
+            ref={gymRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('gym')}
+            className={`shrink-0 ${filterBtnBase} ${
+              selectedGymId !== 'all' ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {selectedGymName} ▼
+          </button>
 
-            {/* ホールドタイプ（複数選択ドロップダウン） */}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => toggleDropdown('holdType')}
-                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                  activeHoldTypes.length > 0
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-primary-light text-text-main border-border hover:border-primary'
-                }`}
-              >
-                ホールド ▼
-              </button>
-              {activeDropdown === 'holdType' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[220px]">
-                  {HOLD_TYPES.map(ht => (
-                    <button
-                      key={ht}
-                      onClick={() => toggleHoldType(ht)}
-                      className={`flex items-center gap-3 w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
-                        activeHoldTypes.includes(ht) ? 'text-primary font-bold' : ''
-                      }`}
-                    >
-                      <span className={`w-7 h-7 rounded border flex items-center justify-center text-base ${
-                        activeHoldTypes.includes(ht)
-                          ? 'bg-primary border-primary text-white'
-                          : 'border-border bg-white'
-                      }`}>
-                        {activeHoldTypes.includes(ht) && '✓'}
-                      </span>
-                      {ht}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* 壁 */}
+          <button
+            ref={wallRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('wall')}
+            className={`shrink-0 ${filterBtnBase} ${
+              selectedWallId !== 'all' ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {selectedWallName} ▼
+          </button>
 
-            {/* 課題系統（複数選択ドロップダウン） */}
-            <div className="relative shrink-0">
-              <button
-                onClick={() => toggleDropdown('style')}
-                className={`px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                  activeStyles.length > 0
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-primary-light text-text-main border-border hover:border-primary'
-                }`}
-              >
-                系統 ▼
-              </button>
-              {activeDropdown === 'style' && (
-                <div className="absolute top-full mt-1 left-0 bg-card border border-border rounded-lg shadow-lg z-50 min-w-[260px]">
-                  {STYLES.map(s => (
-                    <button
-                      key={s}
-                      onClick={() => toggleStyle(s)}
-                      className={`flex items-center gap-3 w-full px-5 py-4 text-xl text-left hover:bg-primary-light whitespace-nowrap ${
-                        activeStyles.includes(s) ? 'text-primary font-bold' : ''
-                      }`}
-                    >
-                      <span className={`w-7 h-7 rounded border flex items-center justify-center text-base ${
-                        activeStyles.includes(s)
-                          ? 'bg-primary border-primary text-white'
-                          : 'border-border bg-white'
-                      }`}>
-                        {activeStyles.includes(s) && '✓'}
-                      </span>
-                      {STYLE_LABELS[s]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* ホールド */}
+          <button
+            ref={holdTypeRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('holdType')}
+            className={`shrink-0 ${filterBtnBase} ${
+              activeHoldTypes.length > 0 ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            ホールド ▼
+          </button>
 
-            {/* キャンパ */}
+          {/* 系統 */}
+          <button
+            ref={styleRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('style')}
+            className={`shrink-0 ${filterBtnBase} ${
+              activeStyles.length > 0 ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            系統 ▼
+          </button>
+
+          {/* キャンパ */}
+          <button
+            onClick={() => toggleCampus()}
+            className={`shrink-0 ${filterBtnBase} ${
+              isCampus ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            キャンパ
+          </button>
+
+          {/* 完登非表示（ログイン時のみ） */}
+          {user && (
             <button
-              onClick={() => toggleCampus()}
-              className={`shrink-0 px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                isCampus
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-primary-light text-text-main border-border hover:border-primary'
+              onClick={() => toggleHideCompleted()}
+              className={`shrink-0 ${filterBtnBase} ${
+                hideCompleted ? filterBtnActive : filterBtnInactive
               }`}
             >
-              キャンパ
+              完登非表示
             </button>
-
-            {/* 完登非表示（ログイン時のみ） */}
-            {user && (
-              <button
-                onClick={() => toggleHideCompleted()}
-                className={`shrink-0 px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap ${
-                  hideCompleted
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-primary-light text-text-main border-border hover:border-primary'
-                }`}
-              >
-                完登非表示
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </div>
+
+      {/* ===== Fixed ドロップダウンメニュー群 ===== */}
+
+      {/* グレードFrom */}
+      <FixedDropdown isOpen={activeDropdown === 'gradeFrom'} buttonRef={gradeFromRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleGradeFromChange('')} className={dropdownItemClass(!gradeFrom)}>
+            下限なし
+          </button>
+          {GRADES.map(g => (
+            <button key={g} onClick={() => handleGradeFromChange(g)} className={dropdownItemClass(gradeFrom === g)}>
+              {g}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* グレードTo */}
+      <FixedDropdown isOpen={activeDropdown === 'gradeTo'} buttonRef={gradeToRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleGradeToChange('')} className={dropdownItemClass(!gradeTo)}>
+            上限なし
+          </button>
+          {GRADES.map(g => (
+            <button key={g} onClick={() => handleGradeToChange(g)} className={dropdownItemClass(gradeTo === g)}>
+              {g}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* ソート */}
+      <FixedDropdown isOpen={activeDropdown === 'sort'} buttonRef={sortRef}>
+        <div data-dropdown-menu>
+          {SORT_OPTIONS.map(opt => (
+            <button key={opt.value} onClick={() => handleSortChange(opt.value)} className={dropdownItemClass(sortType === opt.value)}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* ジム */}
+      <FixedDropdown isOpen={activeDropdown === 'gym'} buttonRef={gymRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleGymChange('all')} className={dropdownItemClass(selectedGymId === 'all')}>
+            すべて
+          </button>
+          {gyms.map(gym => (
+            <button key={gym.id} onClick={() => handleGymChange(gym.id)} className={dropdownItemClass(selectedGymId === gym.id)}>
+              {gym.name}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* 壁 */}
+      <FixedDropdown isOpen={activeDropdown === 'wall'} buttonRef={wallRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleWallChange('all')} className={dropdownItemClass(selectedWallId === 'all')}>
+            すべて
+          </button>
+          {currentWalls.map(wall => (
+            <button key={wall.id} onClick={() => handleWallChange(wall.id)} className={dropdownItemClass(selectedWallId === wall.id)}>
+              {wall.name}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* ホールドタイプ */}
+      <FixedDropdown isOpen={activeDropdown === 'holdType'} buttonRef={holdTypeRef}>
+        <div data-dropdown-menu>
+          {HOLD_TYPES.map(ht => (
+            <button key={ht} onClick={() => toggleHoldType(ht)} className={checkboxItemClass(activeHoldTypes.includes(ht))}>
+              <span className={`w-8 h-8 rounded border flex items-center justify-center text-lg ${
+                activeHoldTypes.includes(ht)
+                  ? 'bg-primary border-primary text-white'
+                  : 'border-border bg-white'
+              }`}>
+                {activeHoldTypes.includes(ht) && '✓'}
+              </span>
+              {ht}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* 課題系統 */}
+      <FixedDropdown isOpen={activeDropdown === 'style'} buttonRef={styleRef}>
+        <div data-dropdown-menu>
+          {STYLES.map(s => (
+            <button key={s} onClick={() => toggleStyle(s)} className={checkboxItemClass(activeStyles.includes(s))}>
+              <span className={`w-8 h-8 rounded border flex items-center justify-center text-lg ${
+                activeStyles.includes(s)
+                  ? 'bg-primary border-primary text-white'
+                  : 'border-border bg-white'
+              }`}>
+                {activeStyles.includes(s) && '✓'}
+              </span>
+              {STYLE_LABELS[s]}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
 
       {/* ===== 課題一覧（2列グリッド） ===== */}
       <main className="w-full pt-[2px]">
