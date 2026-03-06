@@ -710,6 +710,7 @@ export default function Home() {
                   <img
                     src={route.image_url}
                     alt="課題写真"
+                    loading="lazy"
                     className="w-full h-full object-cover object-[center_70%]"
                   />
                 </div>
