@@ -369,6 +369,7 @@ export default function RouteDetailPage() {
         {/* ===== 3. 投稿者名、グレード、お気に入り数、完登者数 ===== */}
         <div className="pt-4">
           <div className="flex items-center justify-between">
+            <div className="h-25 bg-bg"></div>
             <div>
               <p className="text-5xl font-bold text-text-main">{route.grade}</p>
               <p className="text-2xl text-text-sub mt-1">
@@ -376,6 +377,7 @@ export default function RouteDetailPage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
+              <div className="h-25 bg-bg"></div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-text-main">♡ {favoriteCount}</p>
                 <p className="text-lg text-text-sub">保存</p>
@@ -404,6 +406,7 @@ export default function RouteDetailPage() {
 
         {/* ===== 4. 一文 + お気に入りボタン ===== */}
         <div className="mt-4 flex items-center justify-between border-t border-b border-border py-4">
+          <div className="h-25 bg-bg"></div>
           <p className="text-2xl text-text-main flex-1">
             {route.description || ''}
           </p>
@@ -429,6 +432,7 @@ export default function RouteDetailPage() {
               {/* おすすめ */}
               <p className="text-2xl font-bold text-text-main mb-4">この課題をおすすめする？</p>
               <div className="flex gap-3">
+              <div className="h-25 bg-bg"></div>  
                 <button
                   onClick={() => setRecommended(true)}
                   className={`flex-1 py-4 rounded-xl text-2xl font-medium border transition-colors ${recommended
@@ -514,6 +518,7 @@ export default function RouteDetailPage() {
         {/* ===== 7. 編集・削除ボタン ===== */}
         {canEdit && (
           <div className="mt-8 flex gap-3">
+            <div className="h-25 bg-bg"></div>
             <a
               href={`/routes/${route.id}/edit`}
               className="flex-1 py-4 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
