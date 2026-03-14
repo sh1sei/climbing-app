@@ -62,7 +62,7 @@ const STYLE_LABELS: Record<string, string> = {
 
 type SortType = 'new' | 'repeat' | 'recommend'
 const SORT_OPTIONS: { value: SortType; label: string }[] = [
-  { value: 'new', label: '新着' },
+  { value: 'new', label: '新課題順' },
   { value: 'repeat', label: 'リピート順' },
   { value: 'recommend', label: 'おすすめ順' },
 ]
@@ -83,127 +83,42 @@ function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c
 }
 
-function timeAgo(dateStr: string): string {
-  const now = Date.now()
-  const diff = now - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}分前`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}時間前`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}日前`
-  const months = Math.floor(days / 30)
-  return `${months}ヶ月前`
-}
+/* ========== FixedDropdown コンポーネント ========== */
 
-/* ========== フィルターチップ ========== */
-
-function Chip({
-  label,
-  active,
-  onClick,
-  hasDropdown = false,
+function FixedDropdown({
+  isOpen,
+  buttonRef,
+  children,
 }: {
-  label: string
-  active: boolean
-  onClick: () => void
-  hasDropdown?: boolean
+  isOpen: boolean
+  buttonRef: React.RefObject<HTMLButtonElement | null>
+  children: React.ReactNode
 }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setPos({
+        top: rect.bottom + 4,
+        left: Math.max(8, Math.min(rect.left, window.innerWidth - 240)),
+      })
+    }
+  }, [isOpen, buttonRef])
+
+  if (!isOpen || !pos) return null
+
   return (
-    <button
-      onClick={onClick}
-      className={`
-        inline-flex items-center gap-0.5 px-3 py-1.5 rounded-full text-xs font-medium
-        border transition-all duration-150 whitespace-nowrap shrink-0
-        ${active
-          ? 'bg-primary text-white border-primary shadow-sm'
-          : 'bg-white/80 text-text-main border-border hover:border-primary/50'
-        }
-      `}
+    <div
+      className="fixed bg-card border border-border rounded-lg shadow-lg max-h-[100vh] overflow-y-auto min-w-[400px]"
+      style={{ top: pos.top, left: pos.left, zIndex: 9999 }}
     >
-      {label}
-      {hasDropdown && (
-        <svg width="10" height="10" viewBox="0 0 10 10" className="ml-0.5 opacity-60">
-          <path d="M2.5 4L5 6.5L7.5 4" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-        </svg>
-      )}
-    </button>
-  )
-}
-
-/* ========== ドロップダウン ========== */
-
-function Dropdown({
-  items,
-  onSelect,
-  selectedValue,
-}: {
-  items: { value: string; label: string }[]
-  onSelect: (value: string) => void
-  selectedValue: string
-}) {
-  return (
-    <div className="absolute top-full mt-1.5 left-0 bg-white border border-border rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto min-w-[160px] py-1">
-      {items.map((item) => (
-        <button
-          key={item.value}
-          onClick={() => onSelect(item.value)}
-          className={`
-            block w-full px-4 py-2.5 text-xs text-left transition-colors
-            ${selectedValue === item.value
-              ? 'bg-primary-light text-primary font-bold'
-              : 'text-text-main hover:bg-primary-light/50'
-            }
-          `}
-        >
-          {item.label}
-        </button>
-      ))}
+      {children}
     </div>
   )
 }
 
-/* ========== チェックボックスドロップダウン ========== */
-
-function CheckDropdown({
-  items,
-  activeItems,
-  onToggle,
-}: {
-  items: { value: string; label: string }[]
-  activeItems: string[]
-  onToggle: (value: string) => void
-}) {
-  return (
-    <div className="absolute top-full mt-1.5 left-0 bg-white border border-border rounded-xl shadow-lg z-50 min-w-[180px] py-1">
-      {items.map((item) => {
-        const isActive = activeItems.includes(item.value)
-        return (
-          <button
-            key={item.value}
-            onClick={() => onToggle(item.value)}
-            className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs text-left hover:bg-primary-light/50 transition-colors"
-          >
-            <span className={`
-              w-4 h-4 rounded border flex items-center justify-center text-[8px]
-              ${isActive
-                ? 'bg-primary border-primary text-white'
-                : 'border-border bg-white'
-              }
-            `}>
-              {isActive && '✓'}
-            </span>
-            <span className={isActive ? 'text-primary font-bold' : 'text-text-main'}>
-              {item.label}
-            </span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/* ========== メインコンポーネント ========== */
+/* ========== コンポーネント ========== */
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
@@ -226,8 +141,17 @@ export default function Home() {
   const [hideCompleted, setHideCompleted] = useState(false)
   const [myAscentRouteIds, setMyAscentRouteIds] = useState<Set<string>>(new Set())
 
-  // ドロップダウン
+  // ドロップダウン状態
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
+
+  // 各ドロップダウンボタンのref
+  const gradeFromRef = useRef<HTMLButtonElement | null>(null)
+  const gradeToRef = useRef<HTMLButtonElement | null>(null)
+  const sortRef = useRef<HTMLButtonElement | null>(null)
+  const gymRef = useRef<HTMLButtonElement | null>(null)
+  const wallRef = useRef<HTMLButtonElement | null>(null)
+  const holdTypeRef = useRef<HTMLButtonElement | null>(null)
+  const styleRef = useRef<HTMLButtonElement | null>(null)
 
   const supabase = createClient()
   const router = useRouter()
@@ -249,6 +173,7 @@ export default function Home() {
         }
         setNickname(profile.nickname)
 
+        // 自分の完登済み課題IDを取得
         const { data: ascentsData } = await supabase
           .from('ascents')
           .select('route_id')
@@ -305,21 +230,35 @@ export default function Home() {
   }, [])
 
   /* ===== ドロップダウン制御 ===== */
-  const filterBarRef = useRef<HTMLDivElement>(null)
-
   const toggleDropdown = useCallback((name: string) => {
     setActiveDropdown(prev => prev === name ? null : name)
   }, [])
 
+  // ドロップダウン外クリックで閉じる
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (filterBarRef.current && !filterBarRef.current.contains(e.target as Node)) {
+    const handleClickOutside = (e: Event) => {
+      if (activeDropdown) {
+        const target = e.target as HTMLElement
+        if (target.closest('[data-dropdown-menu]')) return
+        if (target.closest('[data-dropdown-button]')) return
         setActiveDropdown(null)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('touchstart', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [activeDropdown])
+
+  // スクロール時にドロップダウンを閉じる
+  useEffect(() => {
+    if (!activeDropdown) return
+    const handleScroll = () => setActiveDropdown(null)
+    window.addEventListener('scroll', handleScroll, true)
+    return () => window.removeEventListener('scroll', handleScroll, true)
+  }, [activeDropdown])
 
   /* ===== データ取得 ===== */
   const fetchRoutes = async (gymId?: string) => {
@@ -470,56 +409,65 @@ export default function Home() {
     applyFilters(routes, { ...currentFilterParams(), hideCompleted: next })
   }
 
-  /* ===== 派生データ ===== */
+  /* ===== 現在のジムの壁リスト ===== */
   const currentWalls = selectedGymId === 'all'
     ? walls
     : walls.filter(w => w.gym_id === selectedGymId)
 
   const selectedGymName = selectedGymId === 'all'
-    ? 'すべてのジム'
+    ? 'ジム'
     : gyms.find(g => g.id === selectedGymId)?.name || 'ジム'
 
   const selectedWallName = selectedWallId === 'all'
-    ? 'すべての壁'
+    ? '壁'
     : currentWalls.find(w => w.id === selectedWallId)?.name || '壁'
+
+  /* ===== ドロップダウンの選択肢スタイル ===== */
+  const dropdownItemClass = (isActive: boolean) =>
+    `block w-full px-8 py-6 text-5xl text-left hover:bg-primary-light whitespace-nowrap ${
+      isActive ? 'bg-primary-light text-primary font-bold' : ''
+  }`
+
+  const checkboxItemClass = (isActive: boolean) =>
+    `flex items-center gap-4 w-full px-8 py-6 text-5xl text-left hover:bg-primary-light whitespace-nowrap ${
+      isActive ? 'text-primary font-bold' : ''
+  }`
 
   /* ========== ローディング ========== */
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text-sub text-sm tracking-wide">読み込み中...</p>
+          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-text-sub text-2xl">読み込み中...</p>
         </div>
       </div>
     )
   }
 
+  /* ===== フィルターボタン共通スタイル ===== */
+  const filterBtnBase = 'px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap'
+  const filterBtnActive = 'bg-primary text-white border-primary'
+  const filterBtnInactive = 'bg-primary-light text-text-main border-border hover:border-primary'
+
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-36">
-
+    <div className="min-h-screen bg-bg pb-48 overflow-hidden">
       {/* ===== ヘッダー ===== */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-border/60">
-        <div className="px-4 h-12 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-primary tracking-wider">カベログ</h1>
+      <header className="sticky top-0 z-50 bg-card border-b border-border">
+        <div className="w-full px-4 h-24 flex items-center justify-between">
+          <h1 className="text-6xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
             <a
               href={`/user/${user.id}`}
-              className="flex items-center gap-1.5 text-xs text-text-sub hover:text-primary transition-colors"
+              className="text-2xl text-text-sub hover:text-primary transition-colors"
             >
-              <span className="w-6 h-6 rounded-full bg-primary-light flex items-center justify-center">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-              </span>
               {nickname}
             </a>
           ) : (
             <a
               href="/login"
-              className="text-xs text-primary font-medium hover:text-primary-dark transition-colors"
+              className="text-2xl text-primary font-medium hover:text-primary-dark transition-colors"
             >
               ログイン
             </a>
@@ -527,232 +475,254 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ===== フィルターバー（2行・上部固定） ===== */}
-      <div className="sticky top-12 z-40 bg-white/90 backdrop-blur-md border-b border-border/60" ref={filterBarRef}>
-        <div className="px-3 pt-2.5 pb-2 space-y-2 overflow-visible">
+      {/* ===== フィルターバー（横スクロール） ===== */}
+      <div className="sticky top-24 z-40 bg-card border-b border-border">
+        <div className="flex items-center gap-3 px-4 py-5 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="h-30 bg-bg"></div>
+          {/* グレードFrom */}
+          <button
+            ref={gradeFromRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('gradeFrom')}
+            className={`shrink-0 ${filterBtnBase} ${
+              gradeFrom ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {gradeFrom || '5級-'}
+          </button>
 
-          {/* 1行目: ジム / 壁 / グレード範囲 / ソート */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide overflow-y-visible">
+          <span className="text-text-sub text-3xl shrink-0">〜</span>
 
-            {/* ジム */}
-            <div className="relative shrink-0">
-              <Chip
-                label={selectedGymId === 'all' ? 'ジム' : (gyms.find(g => g.id === selectedGymId)?.name || 'ジム')}
-                active={selectedGymId !== 'all'}
-                onClick={() => toggleDropdown('gym')}
-                hasDropdown
-              />
-              {activeDropdown === 'gym' && (
-                <Dropdown
-                  items={[
-                    { value: 'all', label: 'すべて' },
-                    ...gyms.map(g => ({ value: g.id, label: g.name })),
-                  ]}
-                  selectedValue={selectedGymId}
-                  onSelect={handleGymChange}
-                />
-              )}
-            </div>
+          {/* グレードTo */}
+          <button
+            ref={gradeToRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('gradeTo')}
+            className={`shrink-0 ${filterBtnBase} ${
+              gradeTo ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {gradeTo || '三段+'}
+          </button>
 
-            {/* 壁 */}
-            <div className="relative shrink-0">
-              <Chip
-                label={selectedWallId === 'all' ? '壁' : (currentWalls.find(w => w.id === selectedWallId)?.name || '壁')}
-                active={selectedWallId !== 'all'}
-                onClick={() => toggleDropdown('wall')}
-                hasDropdown
-              />
-              {activeDropdown === 'wall' && (
-                <Dropdown
-                  items={[
-                    { value: 'all', label: 'すべて' },
-                    ...currentWalls.map(w => ({ value: w.id, label: w.name })),
-                  ]}
-                  selectedValue={selectedWallId}
-                  onSelect={handleWallChange}
-                />
-              )}
-            </div>
+          {/* ソート */}
+          <button
+            ref={sortRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('sort')}
+            className={`shrink-0 ${filterBtnBase} ${filterBtnInactive}`}
+          >
+            {SORT_OPTIONS.find(o => o.value === sortType)?.label} ▼
+          </button>
 
-            {/* グレード範囲 */}
-            <div className="relative shrink-0">
-              <Chip
-                label={gradeFrom || '5級-'}
-                active={!!gradeFrom}
-                onClick={() => toggleDropdown('gradeFrom')}
-                hasDropdown
-              />
-              {activeDropdown === 'gradeFrom' && (
-                <Dropdown
-                  items={[
-                    { value: '', label: '下限なし' },
-                    ...GRADES.map(g => ({ value: g, label: g })),
-                  ]}
-                  selectedValue={gradeFrom}
-                  onSelect={handleGradeFromChange}
-                />
-              )}
-            </div>
+          {/* ジム */}
+          <button
+            ref={gymRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('gym')}
+            className={`shrink-0 ${filterBtnBase} ${
+              selectedGymId !== 'all' ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {selectedGymName} ▼
+          </button>
 
-            <span className="text-text-sub text-xs shrink-0">〜</span>
+          {/* 壁 */}
+          <button
+            ref={wallRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('wall')}
+            className={`shrink-0 ${filterBtnBase} ${
+              selectedWallId !== 'all' ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            {selectedWallName} ▼
+          </button>
 
-            <div className="relative shrink-0">
-              <Chip
-                label={gradeTo || '三段+'}
-                active={!!gradeTo}
-                onClick={() => toggleDropdown('gradeTo')}
-                hasDropdown
-              />
-              {activeDropdown === 'gradeTo' && (
-                <Dropdown
-                  items={[
-                    { value: '', label: '上限なし' },
-                    ...GRADES.map(g => ({ value: g, label: g })),
-                  ]}
-                  selectedValue={gradeTo}
-                  onSelect={handleGradeToChange}
-                />
-              )}
-            </div>
+          {/* ホールド */}
+          <button
+            ref={holdTypeRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('holdType')}
+            className={`shrink-0 ${filterBtnBase} ${
+              activeHoldTypes.length > 0 ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            ホールド ▼
+          </button>
 
-            {/* ソート */}
-            <div className="relative shrink-0">
-              <Chip
-                label={SORT_OPTIONS.find(o => o.value === sortType)?.label || '新着'}
-                active={false}
-                onClick={() => toggleDropdown('sort')}
-                hasDropdown
-              />
-              {activeDropdown === 'sort' && (
-                <Dropdown
-                  items={SORT_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
-                  selectedValue={sortType}
-                  onSelect={(v) => handleSortChange(v as SortType)}
-                />
-              )}
-            </div>
-          </div>
+          {/* 系統 */}
+          <button
+            ref={styleRef}
+            data-dropdown-button
+            onClick={() => toggleDropdown('style')}
+            className={`shrink-0 ${filterBtnBase} ${
+              activeStyles.length > 0 ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            系統 ▼
+          </button>
 
-          {/* 2行目: ホールド / 系統 / キャンパ / 完登非表示 */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide overflow-y-visible">
+          {/* キャンパ */}
+          <button
+            onClick={() => toggleCampus()}
+            className={`shrink-0 ${filterBtnBase} ${
+              isCampus ? filterBtnActive : filterBtnInactive
+            }`}
+          >
+            キャンパ
+          </button>
 
-            {/* ホールドタイプ */}
-            <div className="relative shrink-0">
-              <Chip
-                label={activeHoldTypes.length > 0 ? `ホールド(${activeHoldTypes.length})` : 'ホールド'}
-                active={activeHoldTypes.length > 0}
-                onClick={() => toggleDropdown('holdType')}
-                hasDropdown
-              />
-              {activeDropdown === 'holdType' && (
-                <CheckDropdown
-                  items={HOLD_TYPES.map(ht => ({ value: ht, label: ht }))}
-                  activeItems={activeHoldTypes}
-                  onToggle={toggleHoldType}
-                />
-              )}
-            </div>
-
-            {/* 課題系統 */}
-            <div className="relative shrink-0">
-              <Chip
-                label={activeStyles.length > 0 ? `系統(${activeStyles.length})` : '系統'}
-                active={activeStyles.length > 0}
-                onClick={() => toggleDropdown('style')}
-                hasDropdown
-              />
-              {activeDropdown === 'style' && (
-                <CheckDropdown
-                  items={STYLES.map(s => ({ value: s, label: STYLE_LABELS[s] }))}
-                  activeItems={activeStyles}
-                  onToggle={toggleStyle}
-                />
-              )}
-            </div>
-
-            {/* キャンパ */}
-            <Chip
-              label="キャンパ"
-              active={isCampus}
-              onClick={toggleCampus}
-            />
-
-            {/* 完登非表示 */}
-            {user && (
-              <Chip
-                label="完登済み非表示"
-                active={hideCompleted}
-                onClick={toggleHideCompleted}
-              />
-            )}
-
-            {/* フィルター件数 */}
-            <span className="text-[10px] text-text-sub shrink-0 pl-1">
-              {filteredRoutes.length}件
-            </span>
-          </div>
+          {/* 完登非表示（ログイン時のみ） */}
+          {user && (
+            <button
+              onClick={() => toggleHideCompleted()}
+              className={`shrink-0 ${filterBtnBase} ${
+                hideCompleted ? filterBtnActive : filterBtnInactive
+              }`}
+            >
+              完登非表示
+            </button>
+          )}
         </div>
       </div>
 
+      {/* ===== Fixed ドロップダウンメニュー群 ===== */}
+
+      {/* グレードFrom */}
+      <FixedDropdown isOpen={activeDropdown === 'gradeFrom'} buttonRef={gradeFromRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleGradeFromChange('')} className={dropdownItemClass(!gradeFrom)}>
+            下限なし
+          </button>
+          {GRADES.map(g => (
+            <button key={g} onClick={() => handleGradeFromChange(g)} className={dropdownItemClass(gradeFrom === g)}>
+              {g}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* グレードTo */}
+      <FixedDropdown isOpen={activeDropdown === 'gradeTo'} buttonRef={gradeToRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleGradeToChange('')} className={dropdownItemClass(!gradeTo)}>
+            上限なし
+          </button>
+          {GRADES.map(g => (
+            <button key={g} onClick={() => handleGradeToChange(g)} className={dropdownItemClass(gradeTo === g)}>
+              {g}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* ソート */}
+      <FixedDropdown isOpen={activeDropdown === 'sort'} buttonRef={sortRef}>
+        <div data-dropdown-menu>
+          {SORT_OPTIONS.map(opt => (
+            <button key={opt.value} onClick={() => handleSortChange(opt.value)} className={dropdownItemClass(sortType === opt.value)}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* ジム */}
+      <FixedDropdown isOpen={activeDropdown === 'gym'} buttonRef={gymRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleGymChange('all')} className={dropdownItemClass(selectedGymId === 'all')}>
+            すべて
+          </button>
+          {gyms.map(gym => (
+            <button key={gym.id} onClick={() => handleGymChange(gym.id)} className={dropdownItemClass(selectedGymId === gym.id)}>
+              {gym.name}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* 壁 */}
+      <FixedDropdown isOpen={activeDropdown === 'wall'} buttonRef={wallRef}>
+        <div data-dropdown-menu>
+          <button onClick={() => handleWallChange('all')} className={dropdownItemClass(selectedWallId === 'all')}>
+            すべて
+          </button>
+          {currentWalls.map(wall => (
+            <button key={wall.id} onClick={() => handleWallChange(wall.id)} className={dropdownItemClass(selectedWallId === wall.id)}>
+              {wall.name}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* ホールドタイプ */}
+      <FixedDropdown isOpen={activeDropdown === 'holdType'} buttonRef={holdTypeRef}>
+        <div data-dropdown-menu>
+          {HOLD_TYPES.map(ht => (
+            <button key={ht} onClick={() => toggleHoldType(ht)} className={checkboxItemClass(activeHoldTypes.includes(ht))}>
+              <span className={`w-8 h-8 rounded border flex items-center justify-center text-lg ${
+                activeHoldTypes.includes(ht)
+                  ? 'bg-primary border-primary text-white'
+                  : 'border-border bg-white'
+              }`}>
+                {activeHoldTypes.includes(ht) && '✓'}
+              </span>
+              {ht}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
+      {/* 課題系統 */}
+      <FixedDropdown isOpen={activeDropdown === 'style'} buttonRef={styleRef}>
+        <div data-dropdown-menu>
+          {STYLES.map(s => (
+            <button key={s} onClick={() => toggleStyle(s)} className={checkboxItemClass(activeStyles.includes(s))}>
+              <span className={`w-8 h-8 rounded border flex items-center justify-center text-lg ${
+                activeStyles.includes(s)
+                  ? 'bg-primary border-primary text-white'
+                  : 'border-border bg-white'
+              }`}>
+                {activeStyles.includes(s) && '✓'}
+              </span>
+              {STYLE_LABELS[s]}
+            </button>
+          ))}
+        </div>
+      </FixedDropdown>
+
       {/* ===== 課題一覧（2列グリッド） ===== */}
-      <main className="px-1 pt-1">
+      <main className="w-full pt-4">
         {filteredRoutes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E8E0D0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            <p className="text-text-sub text-sm mt-4">
-              {routes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
-            </p>
-          </div>
+          <p className="text-center text-text-sub py-12 text-2xl">
+            {routes.length === 0 ? 'まだ課題が投稿されていません' : '条件に一致する課題がありません'}
+          </p>
         ) : (
-          <div className="grid grid-cols-2 gap-1">
+          <div className="grid grid-cols-2 gap-[2px]">
             {filteredRoutes.map((route) => (
               <a
                 key={route.id}
                 href={`/routes/${route.id}`}
-                className="group block bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+                className="block bg-card overflow-hidden"
               >
-                {/* 画像エリア */}
-                <div className="relative aspect-[4/3] overflow-hidden">
+                <div className="aspect-[3/2] overflow-hidden">
                   <img
                     src={route.image_url}
                     alt="課題写真"
-                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                    loading="lazy"
+                    className="w-full h-full object-cover object-[center_70%]"
                   />
-                  {/* グレードバッジ（左上） */}
-                  <div className="absolute top-2 left-2">
-                    <span className="inline-block px-2 py-0.5 rounded-md text-xs font-bold bg-black/60 text-white backdrop-blur-sm">
-                      {route.grade}
-                    </span>
-                  </div>
-                  {/* お気に入り数（右上） */}
-                  <div className="absolute top-2 right-2">
-                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] bg-black/40 text-white/90 backdrop-blur-sm">
-                      ♡ {route.favorite_count}
-                    </span>
-                  </div>
                 </div>
-
-                {/* 情報エリア */}
-                <div className="px-2.5 py-2">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] text-text-main font-medium truncate">
-                      {route.poster_nickname}
-                    </p>
-                    <span className="text-[10px] text-text-sub shrink-0 ml-1">
-                      ✓{route.ascent_count}
-                    </span>
+                <div className="px-3 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <p className="text-3xl font-bold text-text-main shrink-0">{route.grade}</p>
+                    <p className="text-2xl text-text-sub truncate">{route.poster_nickname}</p>
                   </div>
-                  {route.description && (
-                    <p className="text-[10px] text-text-sub mt-0.5 truncate">
-                      {route.description}
-                    </p>
-                  )}
-                  <p className="text-[9px] text-text-sub/60 mt-1">
-                    {timeAgo(route.created_at)}
-                  </p>
+                  <div className="flex items-center gap-3 shrink-0 ml-2">
+                    <span className="text-2xl text-text-sub">♡{route.favorite_count}</span>
+                    <span className="text-2xl text-text-sub">✓{route.ascent_count}</span>
+                  </div>
                 </div>
               </a>
             ))}
