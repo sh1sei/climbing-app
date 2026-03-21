@@ -188,29 +188,29 @@ export default function NewRoute() {
   }
 
   /* ===== 共通スタイル ===== */
-  const chipBase = 'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap'
+  const chipBase = 'px-5 py-2 rounded-full text-2xl font-medium border transition-colors whitespace-nowrap'
   const chipActive = 'bg-primary text-white border-primary'
   const chipInactive = 'bg-primary-light text-text-main border-border hover:border-primary'
 
   /* ========== UI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-32">
+    <div className="min-h-screen bg-bg pb-48">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center justify-center">
-          <h1 className="text-lg font-bold text-text-main">課題を投稿</h1>
+        <div className="w-full px-4 h-24 flex items-center justify-center">
+          <h1 className="text-3xl font-bold text-text-main">課題を投稿</h1>
         </div>
       </header>
 
-      <div className="w-full max-w-screen-sm mx-auto px-4 pt-6 space-y-6">
+      <div className="w-full px-4 pt-6 space-y-8">
 
         {/* 1. ジム */}
         <div>
-          <label className="block text-sm font-bold text-text-main mb-2">ジム</label>
+          <label className="block text-2xl font-bold text-text-main mb-3">ジム</label>
           <select
             value={selectedGymId}
             onChange={(e) => setSelectedGymId(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-border bg-card text-text-main text-sm focus:outline-none focus:border-primary transition-colors"
+            className="w-full px-4 py-4 rounded-xl border border-border bg-card text-text-main text-2xl focus:outline-none focus:border-primary transition-colors"
           >
             <option value="">ジムを選択</option>
             {gyms.map((gym) => (
@@ -221,12 +221,12 @@ export default function NewRoute() {
 
         {/* 2. 壁 */}
         <div>
-          <label className="block text-sm font-bold text-text-main mb-2">壁</label>
+          <label className="block text-2xl font-bold text-text-main mb-3">壁</label>
           <select
             value={selectedWallId}
             onChange={(e) => setSelectedWallId(e.target.value)}
             disabled={!selectedGymId}
-            className={`w-full px-4 py-3 rounded-xl border border-border bg-card text-sm focus:outline-none focus:border-primary transition-colors ${
+            className={`w-full px-4 py-4 rounded-xl border border-border bg-card text-2xl focus:outline-none focus:border-primary transition-colors ${
               !selectedGymId ? 'text-text-sub opacity-50 cursor-not-allowed' : 'text-text-main'
             }`}
           >
@@ -239,29 +239,29 @@ export default function NewRoute() {
 
         {/* 3. 画像 */}
         <div>
-          <label className="block text-sm font-bold text-text-main mb-2">写真</label>
+          <label className="block text-2xl font-bold text-text-main mb-3">写真</label>
           {preview ? (
             <div className="relative">
               <img
                 src={preview}
                 alt="プレビュー"
-                className="w-full rounded-xl border border-border object-cover max-h-80"
+                className="w-full rounded-xl border border-border object-cover"
               />
               <button
                 onClick={() => { setImage(null); setPreview(null) }}
-                className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center text-sm"
+                className="absolute top-3 right-3 w-12 h-12 bg-black/50 text-white rounded-full flex items-center justify-center text-2xl"
               >
                 ✕
               </button>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center w-full h-40 rounded-xl border-2 border-dashed border-border bg-primary-light cursor-pointer hover:border-primary transition-colors">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <label className="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-border bg-primary-light cursor-pointer hover:border-primary transition-colors" style={{ paddingTop: '48px', paddingBottom: '48px' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
-              <span className="text-sm text-text-sub mt-2">タップして写真を選択</span>
+              <span className="text-2xl text-text-sub mt-3">タップして写真を選択</span>
               <input
                 type="file"
                 accept="image/*"
@@ -274,25 +274,24 @@ export default function NewRoute() {
 
         {/* 4. グレード */}
         <div>
-          <label className="block text-sm font-bold text-text-main mb-2">グレード</label>
-          <div className="flex flex-wrap gap-2">
+          <label className="block text-2xl font-bold text-text-main mb-3">グレード</label>
+          <select
+            value={grade}
+            onChange={(e) => setGrade(e.target.value)}
+            className="w-full px-4 py-4 rounded-xl border border-border bg-card text-text-main text-2xl focus:outline-none focus:border-primary transition-colors"
+          >
+            <option value="">グレードを選択</option>
             {GRADES.map((g) => (
-              <button
-                key={g}
-                onClick={() => setGrade(grade === g ? '' : g)}
-                className={`${chipBase} ${grade === g ? chipActive : chipInactive}`}
-              >
-                {g}
-              </button>
+              <option key={g} value={g}>{g}</option>
             ))}
-          </div>
+          </select>
         </div>
 
         {/* 5. 属性タグ */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* 特殊属性 */}
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">特殊属性</label>
+            <label className="block text-2xl font-bold text-text-main mb-3">特殊属性</label>
             <div className="flex flex-wrap gap-2">
               {TAGS.map((tag) => (
                 <button
@@ -308,7 +307,7 @@ export default function NewRoute() {
 
           {/* ホールドタイプ（複数選択可） */}
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">ホールドタイプ</label>
+            <label className="block text-2xl font-bold text-text-main mb-3">ホールドタイプ</label>
             <div className="flex flex-wrap gap-2">
               {HOLD_TYPES.map((ht) => (
                 <button
@@ -326,7 +325,7 @@ export default function NewRoute() {
 
           {/* 課題系統 */}
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">課題系統</label>
+            <label className="block text-2xl font-bold text-text-main mb-3">課題系統</label>
             <div className="flex flex-wrap gap-2">
               {STYLES.map((s) => (
                 <button
@@ -341,9 +340,9 @@ export default function NewRoute() {
           </div>
         </div>
 
-        {/* 6. 一文 */}
+        {/* 6. ひとこと */}
         <div>
-          <label className="block text-sm font-bold text-text-main mb-2">
+          <label className="block text-2xl font-bold text-text-main mb-3">
             ひとこと <span className="text-text-sub font-normal">（任意・30文字まで）</span>
           </label>
           <input
@@ -353,16 +352,18 @@ export default function NewRoute() {
               if (e.target.value.length <= 30) setDescription(e.target.value)
             }}
             placeholder="例：ランジが核心！"
-            className="w-full px-4 py-3 rounded-xl border border-border bg-card text-text-main text-sm focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
+            className="w-full px-4 py-4 rounded-xl border border-border bg-card text-text-main text-2xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
           />
-          <p className="text-xs text-text-sub mt-1 text-right">{description.length}/30</p>
+          <p className="text-xl text-text-sub mt-2 text-right">{description.length}/30</p>
         </div>
 
         {/* 7. 投稿ボタン */}
+        <div style={{ height: '16px' }}></div>
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className={`w-full py-3.5 rounded-xl text-sm font-bold transition-colors ${
+          style={{ paddingTop: '24px', paddingBottom: '24px' }}
+          className={`w-full rounded-xl text-3xl font-bold transition-colors ${
             loading
               ? 'bg-border text-text-sub cursor-not-allowed'
               : 'bg-primary text-white hover:bg-primary-dark active:bg-primary-dark'
@@ -373,8 +374,8 @@ export default function NewRoute() {
 
         {/* メッセージ */}
         {message && (
-          <p className={`text-center text-sm font-medium ${
-            message === '投稿完了しました！' ? 'text-green-600' : 'text-red-500'
+          <p className={`text-center text-2xl font-medium ${
+            message === '投稿完了しました！' ? 'text-primary' : 'text-primary'
           }`}>
             {message}
           </p>
