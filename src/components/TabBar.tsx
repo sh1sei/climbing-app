@@ -90,7 +90,7 @@ export default function TabBar() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="w-full flex items-center justify-around px-1" style={{ height: '56px' }}>
+      <div className="w-full flex items-center justify-around px-1" style={{ height: '90px' }}>
         {TAB_ITEMS.map((item) => {
           const isActive = activeTab === item.key
           const isDisabled = item.requireAuth && !userId

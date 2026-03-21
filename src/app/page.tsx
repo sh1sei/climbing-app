@@ -55,7 +55,7 @@ const GRADES = [
 ]
 
 const HOLD_TYPES = ['カチ', 'ピンチ', 'ポッケ', 'スローパー', 'ボリューム']
-const STYLES = ['岩系', 'ショート', 'ストレニ', 'ランジ', 'コーデ']
+const STYLES = ['岩系', 'ショート', '長い系', 'ランジ', 'コーデ']
 const STYLE_LABELS: Record<string, string> = {
   '岩系': '岩系',
   'ショート': 'ショートハード系',
