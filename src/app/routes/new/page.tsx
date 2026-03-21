@@ -246,7 +246,7 @@ export default function NewRoute() {
                 src={preview}
                 alt="プレビュー"
                 className="w-full rounded-xl border border-border object-cover"
-                style={{ maxHeight: '60vh' }}
+                style={{ maxHeight: '40vh' }}
               />
               <button
                 onClick={() => { setImage(null); setPreview(null) }}

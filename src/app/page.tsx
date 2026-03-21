@@ -468,7 +468,7 @@ export default function Home() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-64 overflow-hidden">
+    <div className="min-h-screen bg-bg overflow-hidden" style={{ paddingBottom: '160px' }}>
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="w-full px-4 h-24 flex items-center justify-between">
