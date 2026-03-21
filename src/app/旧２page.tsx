@@ -60,13 +60,11 @@ const STYLE_LABELS: Record<string, string> = {
   'ストレニ': 'ストレニアス系',
 }
 
-type SortType = 'new' | 'repeat' | 'recommend' | 'grade_desc' | 'grade_asc'
+type SortType = 'new' | 'repeat' | 'recommend'
 const SORT_OPTIONS: { value: SortType; label: string }[] = [
   { value: 'new', label: '新課題順' },
   { value: 'repeat', label: 'リピート順' },
   { value: 'recommend', label: 'おすすめ順' },
-  { value: 'grade_desc', label: 'むずかしい順' },
-  { value: 'grade_asc', label: 'やさしい順' },
 ]
 
 /* ========== ユーティリティ ========== */
@@ -341,20 +339,6 @@ export default function Home() {
       case 'recommend':
         result.sort((a, b) => b.recommend_count - a.recommend_count)
         break
-      case 'grade_desc':
-        result.sort((a, b) => {
-          const idxA = GRADES.indexOf(a.grade)
-          const idxB = GRADES.indexOf(b.grade)
-          return (idxB === -1 ? -1 : idxB) - (idxA === -1 ? -1 : idxA)
-        })
-        break
-      case 'grade_asc':
-        result.sort((a, b) => {
-          const idxA = GRADES.indexOf(a.grade)
-          const idxB = GRADES.indexOf(b.grade)
-          return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB)
-        })
-        break
     }
 
     setFilteredRoutes(result)
@@ -468,7 +452,7 @@ export default function Home() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-64 overflow-hidden">
+    <div className="min-h-screen bg-bg pb-48 overflow-hidden">
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="w-full px-4 h-24 flex items-center justify-between">
