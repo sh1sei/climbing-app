@@ -345,8 +345,7 @@ export default function RouteDetailPage() {
           alt="課題写真"
           loading="lazy"
           onClick={openImage}
-          className="w-full cursor-pointer object-cover"
-          style={{ maxHeight: '60vh' }}
+          className="w-full cursor-pointer"
         />
       </div>
 
