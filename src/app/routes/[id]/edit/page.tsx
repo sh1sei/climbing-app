@@ -159,7 +159,7 @@ export default function EditRoutePage() {
   }
 
   /* ===== 共通スタイル ===== */
-  const chipBase = 'px-3 py-1.5 rounded-full text-xs font-medium border transition-colors whitespace-nowrap'
+  const chipBase = 'px-5 py-2 rounded-full text-2xl font-medium border transition-colors whitespace-nowrap'
   const chipActive = 'bg-primary text-white border-primary'
   const chipInactive = 'bg-primary-light text-text-main border-border hover:border-primary'
 
@@ -168,8 +168,8 @@ export default function EditRoutePage() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-text-sub text-sm">読み込み中...</p>
+          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-text-sub text-2xl">読み込み中...</p>
         </div>
       </div>
     )
@@ -177,42 +177,42 @@ export default function EditRoutePage() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-32">
+    <div className="min-h-screen bg-bg pb-48">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center justify-between">
-          <a href={`/routes/${routeId}`} className="text-text-sub hover:text-primary transition-colors text-sm">
+        <div className="w-full px-4 h-24 flex items-center justify-between">
+          <a href={`/routes/${routeId}`} className="text-2xl text-text-sub hover:text-primary transition-colors">
             ← 戻る
           </a>
-          <h1 className="text-lg font-bold text-text-main">課題を編集</h1>
-          <div className="w-10"></div>
+          <h1 className="text-3xl font-bold text-text-main">課題を編集</h1>
+          <div className="w-16"></div>
         </div>
       </header>
 
-      <div className="w-full max-w-screen-sm mx-auto px-4 pt-4">
-        <p className="text-sm text-text-sub mb-6">{gymName}</p>
+      <div className="w-full px-4 pt-6">
+        <p className="text-2xl text-text-sub mb-6">{gymName}</p>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
 
           {/* 画像 */}
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">写真</label>
+            <label className="block text-2xl font-bold text-text-main mb-3">写真</label>
             <div className="relative">
               <img
                 src={preview || currentImageUrl}
                 alt="課題写真"
-                className="w-full rounded-xl border border-border object-cover max-h-80"
+                className="w-full rounded-xl border border-border object-cover"
               />
               {newImage && (
                 <button
                   onClick={() => { setNewImage(null); setPreview(null) }}
-                  className="absolute top-2 right-2 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center text-sm"
+                  className="absolute top-3 right-3 w-12 h-12 bg-black/50 text-white rounded-full flex items-center justify-center text-2xl"
                 >
                   ✕
                 </button>
               )}
             </div>
-            <label className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-primary-light text-primary text-sm font-medium rounded-lg border border-primary/20 cursor-pointer hover:bg-primary/10 transition-colors">
+            <label className="mt-3 inline-flex items-center gap-2 px-6 py-3 bg-primary-light text-primary text-2xl font-medium rounded-xl border border-border cursor-pointer hover:border-primary transition-colors">
               写真を変更
               <input
                 type="file"
@@ -222,17 +222,17 @@ export default function EditRoutePage() {
               />
             </label>
             {newImage && (
-              <p className="text-xs text-primary mt-1">新しい画像が選択されています</p>
+              <p className="text-xl text-primary mt-2">新しい画像が選択されています</p>
             )}
           </div>
 
           {/* 壁 */}
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">壁</label>
+            <label className="block text-2xl font-bold text-text-main mb-3">壁</label>
             <select
               value={selectedWallId}
               onChange={(e) => setSelectedWallId(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-border bg-card text-text-main text-sm focus:outline-none focus:border-primary transition-colors"
+              className="w-full px-4 py-4 rounded-xl border border-border bg-card text-text-main text-2xl focus:outline-none focus:border-primary transition-colors"
             >
               <option value="">壁を選択</option>
               {walls.map((wall) => (
@@ -243,7 +243,7 @@ export default function EditRoutePage() {
 
           {/* グレード */}
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">グレード</label>
+            <label className="block text-2xl font-bold text-text-main mb-3">グレード</label>
             <div className="flex flex-wrap gap-2">
               {GRADES.map((g) => (
                 <button
@@ -258,10 +258,10 @@ export default function EditRoutePage() {
           </div>
 
           {/* 属性タグ */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* 特殊属性 */}
             <div>
-              <label className="block text-sm font-bold text-text-main mb-2">特殊属性</label>
+              <label className="block text-2xl font-bold text-text-main mb-3">特殊属性</label>
               <div className="flex flex-wrap gap-2">
                 {TAGS.map((tag) => (
                   <button
@@ -277,7 +277,7 @@ export default function EditRoutePage() {
 
             {/* ホールドタイプ（複数選択可） */}
             <div>
-              <label className="block text-sm font-bold text-text-main mb-2">ホールドタイプ</label>
+              <label className="block text-2xl font-bold text-text-main mb-3">ホールドタイプ</label>
               <div className="flex flex-wrap gap-2">
                 {HOLD_TYPES.map((ht) => (
                   <button
@@ -295,7 +295,7 @@ export default function EditRoutePage() {
 
             {/* 課題系統 */}
             <div>
-              <label className="block text-sm font-bold text-text-main mb-2">課題系統</label>
+              <label className="block text-2xl font-bold text-text-main mb-3">課題系統</label>
               <div className="flex flex-wrap gap-2">
                 {STYLES.map((s) => (
                   <button
@@ -310,9 +310,9 @@ export default function EditRoutePage() {
             </div>
           </div>
 
-          {/* 一文 */}
+          {/* ひとこと */}
           <div>
-            <label className="block text-sm font-bold text-text-main mb-2">
+            <label className="block text-2xl font-bold text-text-main mb-3">
               ひとこと <span className="text-text-sub font-normal">（任意・30文字まで）</span>
             </label>
             <input
@@ -322,16 +322,18 @@ export default function EditRoutePage() {
                 if (e.target.value.length <= 30) setDescription(e.target.value)
               }}
               placeholder="例：ランジが核心！"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-card text-text-main text-sm focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
+              className="w-full px-4 py-4 rounded-xl border border-border bg-card text-text-main text-2xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
             />
-            <p className="text-xs text-text-sub mt-1 text-right">{description.length}/30</p>
+            <p className="text-xl text-text-sub mt-2 text-right">{description.length}/30</p>
           </div>
 
           {/* 更新ボタン */}
+          <div style={{ height: '16px' }}></div>
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className={`w-full py-3.5 rounded-xl text-sm font-bold transition-colors ${
+            style={{ paddingTop: '24px', paddingBottom: '24px' }}
+            className={`w-full rounded-xl text-3xl font-bold transition-colors ${
               submitting
                 ? 'bg-border text-text-sub cursor-not-allowed'
                 : 'bg-primary text-white hover:bg-primary-dark active:bg-primary-dark'
@@ -341,7 +343,7 @@ export default function EditRoutePage() {
           </button>
 
           {message && (
-            <p className="text-center text-sm font-medium text-red-500">{message}</p>
+            <p className="text-center text-2xl font-medium text-primary">{message}</p>
           )}
         </div>
       </div>
