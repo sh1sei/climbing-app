@@ -54,6 +54,7 @@ export default function UserPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) setCurrentUser(user)
 
+      // ニックネーム取得
       const { data: profile } = await supabase
         .from('profiles')
         .select('nickname')
@@ -64,6 +65,7 @@ export default function UserPage() {
         setNewNickname(profile.nickname)
       }
 
+      // 完登履歴取得
       const { data: ascentsData } = await supabase
         .from('ascents')
         .select('id, recommended, created_at, route_id')
@@ -93,6 +95,7 @@ export default function UserPage() {
         setMyAscents(formatted)
       }
 
+      // 投稿した課題取得
       const { data: routesData } = await supabase
         .from('routes')
         .select('id, grade, image_url, created_at, gyms(name), walls(name)')
@@ -167,7 +170,9 @@ export default function UserPage() {
     let deletedCount = 0
 
     for (const route of oldRoutes) {
+      // R2から画像削除
       await deleteImage(route.image_url)
+      // DBから課題削除（ascentsはカスケードで消えるか手動削除）
       await supabase.from('ascents').delete().eq('route_id', route.id)
       await supabase.from('favorites').delete().eq('route_id', route.id)
       await supabase.from('routes').delete().eq('id', route.id)
@@ -178,6 +183,7 @@ export default function UserPage() {
     setBulkDeleteMessage(`${deletedCount}件の課題を削除しました`)
     setTimeout(() => setBulkDeleteMessage(''), 3000)
 
+    // 一覧を更新
     setMyRoutes((prev) => prev.filter((r) => r.created_at >= cutoffISO))
   }
 
@@ -186,8 +192,8 @@ export default function UserPage() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-bg">
         <div className="text-center">
-          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-text-sub text-2xl">読み込み中...</p>
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-text-sub text-sm">読み込み中...</p>
         </div>
       </div>
     )
@@ -195,50 +201,50 @@ export default function UserPage() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-48">
+    <div className="min-h-screen bg-bg pb-32">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full px-4 h-24 flex items-center justify-center">
-          <h1 className="text-3xl font-bold text-text-main">マイページ</h1>
+        <div className="w-full max-w-screen-sm mx-auto px-4 h-14 flex items-center">
+          <a href="/" className="text-text-sub hover:text-primary transition-colors text-sm">
+            ← ホーム
+          </a>
         </div>
       </header>
 
-      <div className="w-full px-4">
+      <div className="w-full max-w-screen-sm mx-auto px-4">
 
         {/* ニックネーム */}
-        <div className="mt-6 p-6 bg-card rounded-xl border border-border">
+        <div className="mt-4 p-4 bg-card rounded-xl border border-border">
           {isOwner && editingNickname ? (
             <div>
               <input
                 type="text"
                 value={newNickname}
                 onChange={(e) => setNewNickname(e.target.value)}
-                className="w-full px-4 py-4 rounded-xl border border-border bg-bg text-text-main text-2xl focus:outline-none focus:border-primary transition-colors"
+                className="w-full px-4 py-2.5 rounded-lg border border-border bg-bg text-text-main text-base focus:outline-none focus:border-primary transition-colors"
               />
-              <div className="mt-4 flex gap-3">
+              <div className="mt-3 flex gap-2">
                 <button
                   onClick={handleNicknameUpdate}
-                  style={{ paddingTop: '12px', paddingBottom: '12px' }}
-                  className="px-8 text-2xl font-medium bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors"
+                  className="px-5 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
                 >
                   保存
                 </button>
                 <button
                   onClick={() => { setEditingNickname(false); setNewNickname(nickname) }}
-                  style={{ paddingTop: '12px', paddingBottom: '12px' }}
-                  className="px-8 text-2xl font-medium bg-card text-text-main border border-border rounded-xl hover:border-primary transition-colors"
+                  className="px-5 py-2 text-sm font-medium bg-card text-text-main border border-border rounded-lg hover:border-primary transition-colors"
                 >
                   キャンセル
                 </button>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-text-main">{nickname}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-text-main">{nickname}</span>
               {isOwner && (
                 <button
                   onClick={() => setEditingNickname(true)}
-                  className="px-5 py-2 text-xl font-medium bg-primary-light text-primary border border-border rounded-xl hover:border-primary transition-colors"
+                  className="px-3 py-1 text-xs font-medium bg-primary-light text-primary border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors"
                 >
                   変更
                 </button>
@@ -246,31 +252,30 @@ export default function UserPage() {
             </div>
           )}
           {nicknameMessage && (
-            <p className="mt-3 text-xl text-primary">{nicknameMessage}</p>
+            <p className="mt-2 text-xs text-primary">{nicknameMessage}</p>
           )}
         </div>
 
         {/* 統計 */}
-        <div className="mt-6 flex gap-3">
-          <div className="flex-1 text-center bg-primary-light rounded-xl border border-border" style={{ paddingTop: '24px', paddingBottom: '24px' }}>
-            <p className="text-5xl font-bold text-text-main">{myAscents.length}</p>
-            <p className="text-xl text-text-sub mt-1">完登数</p>
+        <div className="mt-4 flex gap-3">
+          <div className="flex-1 text-center py-4 bg-primary-light rounded-xl border border-primary/10">
+            <p className="text-2xl font-bold text-text-main">{myAscents.length}</p>
+            <p className="text-xs text-text-sub mt-0.5">完登数</p>
           </div>
-          <div className="flex-1 text-center bg-primary-light rounded-xl border border-border" style={{ paddingTop: '24px', paddingBottom: '24px' }}>
-            <p className="text-5xl font-bold text-text-main">{myRoutes.length}</p>
-            <p className="text-xl text-text-sub mt-1">投稿数</p>
+          <div className="flex-1 text-center py-4 bg-primary-light rounded-xl border border-primary/10">
+            <p className="text-2xl font-bold text-text-main">{myRoutes.length}</p>
+            <p className="text-xs text-text-sub mt-0.5">投稿数</p>
           </div>
         </div>
 
         {/* 管理者メニュー */}
         {isOwner && currentUser?.email === ADMIN_EMAIL && (
-          <div className="mt-6 p-6 bg-card rounded-xl border border-border">
-            <p className="text-xl font-bold text-text-sub mb-4">管理者メニュー</p>
+          <div className="mt-4 p-4 bg-card rounded-xl border border-border">
+            <p className="text-xs font-bold text-text-sub mb-3">管理者メニュー</p>
             <div className="flex gap-3">
               <a
                 href="/admin/gyms"
-                style={{ paddingTop: '16px', paddingBottom: '16px' }}
-                className="flex-1 text-center text-2xl font-medium bg-primary-light text-primary border border-border rounded-xl hover:border-primary transition-colors"
+                className="flex-1 py-2.5 text-center text-sm font-medium bg-primary-light text-primary border border-primary/20 rounded-lg hover:bg-primary/10 transition-colors"
               >
                 ジム・壁管理
               </a>
@@ -279,13 +284,12 @@ export default function UserPage() {
         )}
 
         {/* タブ */}
-        <div className="mt-8 flex border-b-2 border-border">
+        <div className="mt-6 flex border-b-2 border-border">
           <button
             onClick={() => setActiveTab('ascents')}
-            style={{ paddingTop: '16px', paddingBottom: '16px' }}
-            className={`flex-1 text-2xl font-bold transition-colors ${
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${
               activeTab === 'ascents'
-                ? 'text-primary border-b-3 border-primary -mb-[2px]'
+                ? 'text-primary border-b-2 border-primary -mb-[2px]'
                 : 'text-text-sub'
             }`}
           >
@@ -293,10 +297,9 @@ export default function UserPage() {
           </button>
           <button
             onClick={() => setActiveTab('routes')}
-            style={{ paddingTop: '16px', paddingBottom: '16px' }}
-            className={`flex-1 text-2xl font-bold transition-colors ${
+            className={`flex-1 py-3 text-sm font-bold transition-colors ${
               activeTab === 'routes'
-                ? 'text-primary border-b-3 border-primary -mb-[2px]'
+                ? 'text-primary border-b-2 border-primary -mb-[2px]'
                 : 'text-text-sub'
             }`}
           >
@@ -308,32 +311,30 @@ export default function UserPage() {
         {activeTab === 'ascents' && (
           <div className="mt-4">
             {myAscents.length === 0 ? (
-              <p className="text-center text-text-sub text-2xl" style={{ paddingTop: '48px', paddingBottom: '48px' }}>まだ完登記録がありません</p>
+              <p className="text-center text-text-sub text-sm py-12">まだ完登記録がありません</p>
             ) : (
               myAscents.map((ascent) => (
                 <a
                   key={ascent.id}
                   href={`/routes/${ascent.route_id}`}
-                  className="flex gap-4 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
-                  style={{ paddingTop: '16px', paddingBottom: '16px' }}
+                  className="flex gap-3 py-3 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
                 >
                   <img
                     src={ascent.route_image_url}
                     alt="課題"
-                    style={{ width: '80px', height: '80px' }}
-                    className="object-cover rounded-xl flex-shrink-0"
+                    className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-text-main">{ascent.route_grade}</span>
-                      <div className="flex items-center gap-2">
-                        {ascent.recommended && <span className="text-2xl">👍</span>}
+                      <span className="text-base font-bold text-text-main">{ascent.route_grade}</span>
+                      <div className="flex items-center gap-1.5">
+                        {ascent.recommended && <span className="text-sm">👍</span>}
                       </div>
                     </div>
-                    <p className="text-xl text-text-sub mt-1 truncate">
+                    <p className="text-xs text-text-sub mt-0.5 truncate">
                       {ascent.gym_name} / {ascent.wall_name}
                     </p>
-                    <p className="text-lg text-text-sub mt-1">
+                    <p className="text-[11px] text-text-sub mt-0.5">
                       {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
                     </p>
                   </div>
@@ -347,28 +348,26 @@ export default function UserPage() {
         {activeTab === 'routes' && (
           <div className="mt-4">
             {myRoutes.length === 0 ? (
-              <p className="text-center text-text-sub text-2xl" style={{ paddingTop: '48px', paddingBottom: '48px' }}>まだ課題を投稿していません</p>
+              <p className="text-center text-text-sub text-sm py-12">まだ課題を投稿していません</p>
             ) : (
               <>
                 {myRoutes.map((route) => (
                   <a
                     key={route.id}
                     href={`/routes/${route.id}`}
-                    className="flex gap-4 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
-                    style={{ paddingTop: '16px', paddingBottom: '16px' }}
+                    className="flex gap-3 py-3 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
                   >
                     <img
                       src={route.image_url}
                       alt="課題"
-                      style={{ width: '80px', height: '80px' }}
-                      className="object-cover rounded-xl flex-shrink-0"
+                      className="w-14 h-14 object-cover rounded-lg flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <span className="text-2xl font-bold text-text-main">{route.grade}</span>
-                      <p className="text-xl text-text-sub mt-1 truncate">
+                      <span className="text-base font-bold text-text-main">{route.grade}</span>
+                      <p className="text-xs text-text-sub mt-0.5 truncate">
                         {route.gym_name} / {route.wall_name}
                       </p>
-                      <p className="text-lg text-text-sub mt-1">
+                      <p className="text-[11px] text-text-sub mt-0.5">
                         {new Date(route.created_at).toLocaleDateString('ja-JP')}
                       </p>
                     </div>
@@ -377,32 +376,31 @@ export default function UserPage() {
 
                 {/* 一括削除（本人のみ） */}
                 {isOwner && (
-                  <div className="mt-8 p-6 bg-card rounded-xl border border-border">
-                    <p className="text-xl font-bold text-text-main mb-4">古い投稿の一括削除</p>
-                    <div className="flex items-center gap-3">
+                  <div className="mt-6 p-4 bg-card rounded-xl border border-border">
+                    <p className="text-xs font-bold text-text-main mb-3">古い投稿の一括削除</p>
+                    <div className="flex items-center gap-2">
                       <input
                         type="number"
                         value={bulkDeleteDays}
                         onChange={(e) => setBulkDeleteDays(e.target.value)}
                         min="1"
-                        style={{ width: '80px' }}
-                        className="px-3 py-3 rounded-xl border border-border bg-bg text-text-main text-2xl text-center focus:outline-none focus:border-primary transition-colors"
+                        className="w-20 px-3 py-2 rounded-lg border border-border bg-bg text-text-main text-sm text-center focus:outline-none focus:border-primary transition-colors"
                       />
-                      <span className="text-xl text-text-sub">日以前の課題を</span>
+                      <span className="text-sm text-text-sub">日以前の課題を</span>
                       <button
                         onClick={handleBulkDelete}
                         disabled={bulkDeleting}
-                        className={`px-6 py-3 text-xl font-medium rounded-xl transition-colors ${
+                        className={`px-4 py-2 text-xs font-medium rounded-lg transition-colors ${
                           bulkDeleting
                             ? 'bg-border text-text-sub cursor-not-allowed'
-                            : 'bg-primary-light text-primary border border-border hover:border-primary'
+                            : 'bg-red-50 text-red-500 border border-red-200 hover:bg-red-100'
                         }`}
                       >
                         {bulkDeleting ? '削除中...' : '一括削除'}
                       </button>
                     </div>
                     {bulkDeleteMessage && (
-                      <p className="mt-3 text-xl text-primary">{bulkDeleteMessage}</p>
+                      <p className="mt-2 text-xs text-primary">{bulkDeleteMessage}</p>
                     )}
                   </div>
                 )}
