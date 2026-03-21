@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient, ADMIN_EMAIL } from '@/lib/supabase'
 import { deleteImage } from '@/lib/upload'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
@@ -11,6 +11,7 @@ import type { User } from '@supabase/supabase-js'
 
 type MyAscent = {
   id: string
+  recommended: boolean
   created_at: string
   route_id: string
   route_grade: string
@@ -46,15 +47,8 @@ export default function UserPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [bulkDeleteMessage, setBulkDeleteMessage] = useState('')
   const supabase = createClient()
-  const router = useRouter()
 
   const isOwner = currentUser?.id === userId
-
-  /* ===== ログアウト ===== */
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
 
   useEffect(() => {
     const init = async () => {
@@ -73,33 +67,30 @@ export default function UserPage() {
 
       const { data: ascentsData } = await supabase
         .from('ascents')
-        .select('id, created_at, route_id')
+        .select('id, recommended, created_at, route_id')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
 
-      if (ascentsData && ascentsData.length > 0) {
-        const routeIds = ascentsData.map((a: any) => a.route_id)
-        const { data: routesForAscents } = await supabase
-          .from('routes')
-          .select('id, grade, image_url, gyms(name), walls(name)')
-          .in('id', routeIds)
-
-        const routeMap = new Map(
-          (routesForAscents || []).map((r: any) => [r.id, r])
+      if (ascentsData) {
+        const formatted = await Promise.all(
+          ascentsData.map(async (a: any) => {
+            const { data: routeData } = await supabase
+              .from('routes')
+              .select('id, grade, image_url, gyms(name), walls(name)')
+              .eq('id', a.route_id)
+              .single()
+            return {
+              id: a.id,
+              recommended: a.recommended,
+              created_at: a.created_at,
+              route_id: a.route_id,
+              route_grade: routeData?.grade || '',
+              route_image_url: routeData?.image_url || '',
+              gym_name: (routeData as any)?.gyms?.[0]?.name || '',
+              wall_name: (routeData as any)?.walls?.[0]?.name || '',
+            }
+          })
         )
-
-        const formatted = ascentsData.map((a: any) => {
-          const routeData = routeMap.get(a.route_id) as any
-          return {
-            id: a.id,
-            created_at: a.created_at,
-            route_id: a.route_id,
-            route_grade: routeData?.grade || '',
-            route_image_url: routeData?.image_url || '',
-            gym_name: routeData?.gyms?.[0]?.name || '',
-            wall_name: routeData?.walls?.[0]?.name || '',
-          }
-        })
         setMyAscents(formatted)
       }
 
@@ -180,7 +171,6 @@ export default function UserPage() {
       await deleteImage(route.image_url)
       await supabase.from('ascents').delete().eq('route_id', route.id)
       await supabase.from('favorites').delete().eq('route_id', route.id)
-      await supabase.from('recommends').delete().eq('route_id', route.id)
       await supabase.from('routes').delete().eq('id', route.id)
       deletedCount++
     }
@@ -341,6 +331,7 @@ export default function UserPage() {
                         <p className="text-3xl font-bold text-text-main shrink-0">{ascent.route_grade}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-2">
+                        {ascent.recommended && <span className="text-2xl">👍</span>}
                         <span className="text-xl text-text-sub">
                           {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
                         </span>
@@ -420,19 +411,6 @@ export default function UserPage() {
                 )}
               </>
             )}
-          </div>
-        )}
-
-        {/* ログアウト */}
-        {isOwner && (
-          <div className="mt-8">
-            <button
-              onClick={handleLogout}
-              style={{ paddingTop: '16px', paddingBottom: '16px' }}
-              className="w-full rounded-xl text-2xl font-medium border border-border text-text-sub hover:border-primary transition-colors"
-            >
-              ログアウト
-            </button>
           </div>
         )}
       </div>

@@ -136,6 +136,7 @@ export default function NewRoute() {
   const handleSubmit = async () => {
     if (!selectedGymId || !selectedWallId || !grade || !image) {
       setMessage('ジム・壁・グレード・写真は必須です')
+      setTimeout(() => setMessage(''), 3000)
       return
     }
 
@@ -144,6 +145,7 @@ export default function NewRoute() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       setMessage('ログインが必要です')
+      setTimeout(() => setMessage(''), 3000)
       setLoading(false)
       return
     }
@@ -177,6 +179,7 @@ export default function NewRoute() {
     }
 
     setMessage('投稿完了しました！')
+    setTimeout(() => setMessage(''), 3000)
     setImage(null)
     setPreview(null)
     setGrade('')

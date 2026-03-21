@@ -196,6 +196,7 @@ export default function RouteDetailPage() {
   const handleAscent = async () => {
     if (!user) {
       setMessage('ログインが必要です')
+      setTimeout(() => setMessage(''), 3000)
       return
     }
 
@@ -209,14 +210,17 @@ export default function RouteDetailPage() {
     if (error) {
       if (error.code === '23505') {
         setMessage('既に完登記録があります')
+        setTimeout(() => setMessage(''), 3000)
       } else {
         setMessage('記録に失敗しました')
+        setTimeout(() => setMessage(''), 3000)
       }
       setSubmitting(false)
       return
     }
 
     setMessage('完登記録しました！')
+    setTimeout(() => setMessage(''), 3000)
     await fetchAscents(user.id)
     setSubmitting(false)
   }
@@ -228,6 +232,7 @@ export default function RouteDetailPage() {
     await supabase.from('ascents').delete().eq('id', myAscent.id)
     setMyAscent(null)
     setMessage('記録を取り消しました')
+    setTimeout(() => setMessage(''), 3000)
     await fetchAscents(user?.id)
   }
 

@@ -116,6 +116,7 @@ export default function EditRoutePage() {
   const handleSubmit = async () => {
     if (!selectedWallId || !grade) {
       setMessage('壁とグレードを選択してください')
+      setTimeout(() => setMessage(''), 3000)
       return
     }
 
@@ -131,6 +132,7 @@ export default function EditRoutePage() {
         imageUrl = url
       } catch {
         setMessage('画像のアップロードに失敗しました')
+        setTimeout(() => setMessage(''), 3000)
         setSubmitting(false)
         return
       }
@@ -151,6 +153,7 @@ export default function EditRoutePage() {
 
     if (error) {
       setMessage('更新に失敗しました')
+      setTimeout(() => setMessage(''), 3000)
       setSubmitting(false)
       return
     }

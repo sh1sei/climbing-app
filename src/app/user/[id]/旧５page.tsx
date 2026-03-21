@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient, ADMIN_EMAIL } from '@/lib/supabase'
 import { deleteImage } from '@/lib/upload'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
@@ -46,15 +46,8 @@ export default function UserPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [bulkDeleteMessage, setBulkDeleteMessage] = useState('')
   const supabase = createClient()
-  const router = useRouter()
 
   const isOwner = currentUser?.id === userId
-
-  /* ===== ログアウト ===== */
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
 
   useEffect(() => {
     const init = async () => {
@@ -420,19 +413,6 @@ export default function UserPage() {
                 )}
               </>
             )}
-          </div>
-        )}
-
-        {/* ログアウト */}
-        {isOwner && (
-          <div className="mt-8">
-            <button
-              onClick={handleLogout}
-              style={{ paddingTop: '16px', paddingBottom: '16px' }}
-              className="w-full rounded-xl text-2xl font-medium border border-border text-text-sub hover:border-primary transition-colors"
-            >
-              ログアウト
-            </button>
           </div>
         )}
       </div>
