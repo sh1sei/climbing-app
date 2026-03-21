@@ -311,35 +311,35 @@ export default function UserPage() {
             {myAscents.length === 0 ? (
               <p className="text-center text-text-sub text-2xl" style={{ paddingTop: '48px', paddingBottom: '48px' }}>まだ完登記録がありません</p>
             ) : (
-              <div className="grid grid-cols-2 gap-[2px]">
-                {myAscents.map((ascent) => (
-                  <Link
-                    key={ascent.id}
-                    href={`/routes/${ascent.route_id}`}
-                    className="block bg-card overflow-hidden rounded-xl"
-                  >
-                    <div className="aspect-[3/2] overflow-hidden">
-                      <img
-                        src={ascent.route_image_url}
-                        alt="課題"
-                        loading="lazy"
-                        className="w-full h-full object-cover object-[center_70%] rounded-xl"
-                      />
-                    </div>
-                    <div className="px-3 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <p className="text-3xl font-bold text-text-main shrink-0">{ascent.route_grade}</p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 ml-2">
+              myAscents.map((ascent) => (
+                <Link
+                  key={ascent.id}
+                  href={`/routes/${ascent.route_id}`}
+                  className="flex gap-4 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
+                  style={{ paddingTop: '16px', paddingBottom: '16px' }}
+                >
+                  <img
+                    src={ascent.route_image_url}
+                    alt="課題"
+                    style={{ width: '80px', height: '80px' }}
+                    className="object-cover rounded-xl flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl font-bold text-text-main">{ascent.route_grade}</span>
+                      <div className="flex items-center gap-2">
                         {ascent.recommended && <span className="text-2xl">👍</span>}
-                        <span className="text-xl text-text-sub">
-                          {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
-                        </span>
                       </div>
                     </div>
-                  </Link>
-                ))}
-              </div>
+                    <p className="text-xl text-text-sub mt-1 truncate">
+                      {ascent.gym_name} / {ascent.wall_name}
+                    </p>
+                    <p className="text-lg text-text-sub mt-1">
+                      {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
+                    </p>
+                  </div>
+                </Link>
+              ))
             )}
           </div>
         )}
@@ -351,32 +351,30 @@ export default function UserPage() {
               <p className="text-center text-text-sub text-2xl" style={{ paddingTop: '48px', paddingBottom: '48px' }}>まだ課題を投稿していません</p>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-[2px]">
-                  {myRoutes.map((route) => (
-                    <Link
-                      key={route.id}
-                      href={`/routes/${route.id}`}
-                      className="block bg-card overflow-hidden rounded-xl"
-                    >
-                      <div className="aspect-[3/2] overflow-hidden">
-                        <img
-                          src={route.image_url}
-                          alt="課題"
-                          loading="lazy"
-                          className="w-full h-full object-cover object-[center_70%] rounded-xl"
-                        />
-                      </div>
-                      <div className="px-3 py-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <p className="text-3xl font-bold text-text-main shrink-0">{route.grade}</p>
-                        </div>
-                        <span className="text-xl text-text-sub shrink-0 ml-2">
-                          {new Date(route.created_at).toLocaleDateString('ja-JP')}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                {myRoutes.map((route) => (
+                  <Link
+                    key={route.id}
+                    href={`/routes/${route.id}`}
+                    className="flex gap-4 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
+                    style={{ paddingTop: '16px', paddingBottom: '16px' }}
+                  >
+                    <img
+                      src={route.image_url}
+                      alt="課題"
+                      style={{ width: '80px', height: '80px' }}
+                      className="object-cover rounded-xl flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-2xl font-bold text-text-main">{route.grade}</span>
+                      <p className="text-xl text-text-sub mt-1 truncate">
+                        {route.gym_name} / {route.wall_name}
+                      </p>
+                      <p className="text-lg text-text-sub mt-1">
+                        {new Date(route.created_at).toLocaleDateString('ja-JP')}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
 
                 {/* 一括削除（本人のみ） */}
                 {isOwner && (
