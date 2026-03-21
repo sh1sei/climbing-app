@@ -16,7 +16,7 @@ type TabKey = typeof TAB_ITEMS[number]['key']
 /* アイコンSVG */
 function TabIcon({ tabKey, active }: { tabKey: TabKey; active: boolean }) {
   const color = active ? '#C9A96E' : '#999999'
-  const size = 32
+  const size = 48
   const stroke = active ? 2.4 : 2
 
   switch (tabKey) {

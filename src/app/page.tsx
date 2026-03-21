@@ -55,10 +55,13 @@ const GRADES = [
 ]
 
 const HOLD_TYPES = ['カチ', 'ピンチ', 'ポッケ', 'スローパー', 'ボリューム']
-const STYLES = ['ショート', 'ストレニ']
+const STYLES = ['岩系', 'ショート', 'ストレニ', 'ランジ', 'コーデ']
 const STYLE_LABELS: Record<string, string> = {
+  '岩系': '岩系',
   'ショート': 'ショートハード系',
   'ストレニ': 'ストレニアス系',
+  'ランジ': 'ランジ系',
+  'コーデ': 'コーデ系',
 }
 
 type SortType = 'new' | 'repeat' | 'recommend' | 'grade_desc' | 'grade_asc'
