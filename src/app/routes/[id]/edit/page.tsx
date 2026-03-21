@@ -180,12 +180,8 @@ export default function EditRoutePage() {
     <div className="min-h-screen bg-bg pb-48">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full px-4 h-24 flex items-center justify-between">
-          <a href={`/routes/${routeId}`} className="text-2xl text-text-sub hover:text-primary transition-colors">
-            ← 戻る
-          </a>
+        <div className="w-full px-4 h-24 flex items-center justify-center">
           <h1 className="text-3xl font-bold text-text-main">課題を編集</h1>
-          <div className="w-16"></div>
         </div>
       </header>
 
@@ -244,17 +240,16 @@ export default function EditRoutePage() {
           {/* グレード */}
           <div>
             <label className="block text-2xl font-bold text-text-main mb-3">グレード</label>
-            <div className="flex flex-wrap gap-2">
+            <select
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              className="w-full px-4 py-4 rounded-xl border border-border bg-card text-text-main text-2xl focus:outline-none focus:border-primary transition-colors"
+            >
+              <option value="">グレードを選択</option>
               {GRADES.map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setGrade(grade === g ? '' : g)}
-                  className={`${chipBase} ${grade === g ? chipActive : chipInactive}`}
-                >
-                  {g}
-                </button>
+                <option key={g} value={g}>{g}</option>
               ))}
-            </div>
+            </select>
           </div>
 
           {/* 属性タグ */}
