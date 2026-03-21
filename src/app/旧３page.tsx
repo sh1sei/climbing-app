@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
 /* ========== 型定義 ========== */
@@ -475,19 +474,19 @@ export default function Home() {
         <div className="w-full px-4 h-24 flex items-center justify-between">
           <h1 className="text-6xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
-            <Link
+            <a
               href={`/user/${user.id}`}
               className="text-2xl text-text-sub hover:text-primary transition-colors"
             >
               {nickname}
-            </Link>
+            </a>
           ) : (
-            <Link
+            <a
               href="/login"
               className="text-2xl text-primary font-medium hover:text-primary-dark transition-colors"
             >
               ログイン
-            </Link>
+            </a>
           )}
         </div>
       </header>
@@ -718,7 +717,7 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-2 gap-[2px]">
             {filteredRoutes.map((route) => (
-              <Link
+              <a
                 key={route.id}
                 href={`/routes/${route.id}`}
                 className="block bg-card overflow-hidden"
@@ -741,7 +740,7 @@ export default function Home() {
                     <span className="text-2xl text-text-sub">✓{route.ascent_count}</span>
                   </div>
                 </div>
-              </Link>
+              </a>
             ))}
           </div>
         )}

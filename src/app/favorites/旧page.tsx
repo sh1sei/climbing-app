@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 
 /* ========== 型定義 ========== */
 
@@ -285,7 +284,7 @@ export default function FavoritesPage() {
         ) : (
           <div className="grid grid-cols-2 gap-[2px]">
             {filteredRoutes.map((route) => (
-              <Link
+              <a
                 key={route.id}
                 href={`/routes/${route.id}`}
                 className="block bg-card overflow-hidden"
@@ -308,7 +307,7 @@ export default function FavoritesPage() {
                     <span className="text-2xl text-text-sub">✓{route.ascent_count}</span>
                   </div>
                 </div>
-              </Link>
+              </a>
             ))}
           </div>
         )}

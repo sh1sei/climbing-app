@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient, ADMIN_EMAIL } from '@/lib/supabase'
 import { deleteImage } from '@/lib/upload'
 import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
 /* ========== 型定義 ========== */
@@ -405,12 +404,12 @@ export default function RouteDetailPage() {
           </div>
           {/* 投稿者 + 投稿日 */}
           <div className="text-center">
-            <Link
+            <a
               href={`/user/${route.user_id}`}
               className="text-2xl text-primary hover:underline"
             >
               {posterNickname}
-            </Link>
+            </a>
             <p className="text-xl text-text-sub mt-1">
               {new Date(route.created_at).toLocaleDateString('ja-JP')}
             </p>
@@ -496,12 +495,12 @@ export default function RouteDetailPage() {
                     key={ascent.id}
                     className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
                   >
-                    <Link
+                    <a
                       href={`/user/${ascent.user_id}`}
                       className="text-xl text-primary hover:underline truncate"
                     >
                       {ascent.profiles?.[0]?.nickname}
-                    </Link>
+                    </a>
                     <span className="text-lg text-text-sub shrink-0 ml-2">
                       {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
                     </span>
@@ -547,13 +546,13 @@ export default function RouteDetailPage() {
         )}
 
         {!user && (
-          <Link
+          <a
             href="/login"
             style={{ paddingTop: '48px', paddingBottom: '48px' }}
             className="block w-full rounded-xl text-3xl font-bold text-center bg-primary text-white hover:bg-primary-dark transition-colors"
           >
             ログインして記録する
-          </Link>
+          </a>
         )}
 
         {message && (
@@ -566,13 +565,13 @@ export default function RouteDetailPage() {
         <>
           <div style={{ height: '16px' }}></div>
           <div className="w-full px-4 flex gap-3">
-            <Link
+            <a
               href={`/routes/${route.id}/edit`}
               style={{ paddingTop: '24px', paddingBottom: '24px' }}
               className="flex-1 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
             >
               編集する
-            </Link>
+            </a>
             <button
               onClick={handleDeleteRoute}
               style={{ paddingTop: '24px', paddingBottom: '24px' }}

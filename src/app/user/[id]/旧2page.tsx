@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { createClient, ADMIN_EMAIL } from '@/lib/supabase'
 import { deleteImage } from '@/lib/upload'
 import { useParams } from 'next/navigation'
-import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
 /* ========== 型定義 ========== */
@@ -268,13 +267,13 @@ export default function UserPage() {
           <div className="mt-6 p-6 bg-card rounded-xl border border-border">
             <p className="text-xl font-bold text-text-sub mb-4">管理者メニュー</p>
             <div className="flex gap-3">
-              <Link
+              <a
                 href="/admin/gyms"
                 style={{ paddingTop: '16px', paddingBottom: '16px' }}
                 className="flex-1 text-center text-2xl font-medium bg-primary-light text-primary border border-border rounded-xl hover:border-primary transition-colors"
               >
                 ジム・壁管理
-              </Link>
+              </a>
             </div>
           </div>
         )}
@@ -312,7 +311,7 @@ export default function UserPage() {
               <p className="text-center text-text-sub text-2xl" style={{ paddingTop: '48px', paddingBottom: '48px' }}>まだ完登記録がありません</p>
             ) : (
               myAscents.map((ascent) => (
-                <Link
+                <a
                   key={ascent.id}
                   href={`/routes/${ascent.route_id}`}
                   className="flex gap-4 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
@@ -338,7 +337,7 @@ export default function UserPage() {
                       {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
                     </p>
                   </div>
-                </Link>
+                </a>
               ))
             )}
           </div>
@@ -352,7 +351,7 @@ export default function UserPage() {
             ) : (
               <>
                 {myRoutes.map((route) => (
-                  <Link
+                  <a
                     key={route.id}
                     href={`/routes/${route.id}`}
                     className="flex gap-4 border-b border-border last:border-b-0 hover:bg-primary-light/30 transition-colors -mx-1 px-1 rounded"
@@ -373,7 +372,7 @@ export default function UserPage() {
                         {new Date(route.created_at).toLocaleDateString('ja-JP')}
                       </p>
                     </div>
-                  </Link>
+                  </a>
                 ))}
 
                 {/* 一括削除（本人のみ） */}
