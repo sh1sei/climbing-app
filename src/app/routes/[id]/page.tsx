@@ -436,14 +436,15 @@ export default function RouteDetailPage() {
         </div>
       )}
 
-      {/* ===== 5. お気に入り｜おすすめ｜完登者一覧（3カラム） ===== */}
+      {/* ===== 5. お気に入り｜おすすめ（2カラム） ===== */}
+      <div className="py-4"></div>
       <div className="bg-card border-b border-border">
-        <div className="w-full px-4 py-4 grid grid-cols-3 gap-3 items-start">
+        <div className="w-full px-4 py-4 grid grid-cols-2 gap-3">
           {/* お気に入り保存ボタン */}
           {user ? (
             <button
               onClick={toggleFavorite}
-              className={`w-full py-4 rounded-xl text-2xl font-medium border transition-colors ${
+              className={`w-full py-16 rounded-xl text-2xl font-medium border transition-colors ${
                 isFavorited
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -459,7 +460,7 @@ export default function RouteDetailPage() {
           {user ? (
             <button
               onClick={toggleRecommend}
-              className={`w-full py-4 rounded-xl text-2xl font-medium border transition-colors ${
+              className={`w-full py-16 rounded-xl text-2xl font-medium border transition-colors ${
                 isRecommended
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -469,30 +470,35 @@ export default function RouteDetailPage() {
               <span className="ml-1 text-xl">{recommendCount}</span>
             </button>
           ) : (
-            <div className="text-center py-4">
+            <div className="flex items-center justify-center py-16">
               <p className="text-2xl text-text-main">👍 {recommendCount}</p>
-              <p className="text-lg text-text-sub">おすすめ</p>
             </div>
           )}
+        </div>
+      </div>
 
-          {/* 完登者一覧（スクロール） */}
-          <div className="max-h-[160px] overflow-y-auto border border-border rounded-xl px-3 py-2">
+      {/* ===== 5b. 完登者一覧 ===== */}
+      <div className="py-4"></div>
+      <div className="bg-card border-b border-border">
+        <div className="w-full px-4 py-4">
+          <h3 className="text-2xl font-bold text-text-main mb-3">完登者（{ascents.length}人）</h3>
+          <div className="max-h-[640px] overflow-y-auto border border-border rounded-xl px-4 py-3">
             {ascents.length === 0 ? (
-              <p className="text-lg text-text-sub text-center py-2">完登者なし</p>
+              <p className="text-xl text-text-sub text-center py-4">完登者なし</p>
             ) : (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {ascents.map((ascent) => (
                   <div
                     key={ascent.id}
-                    className="flex items-center justify-between py-1"
+                    className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
                   >
                     <a
                       href={`/user/${ascent.user_id}`}
-                      className="text-lg text-primary hover:underline truncate"
+                      className="text-xl text-primary hover:underline truncate"
                     >
                       {ascent.profiles?.[0]?.nickname}
                     </a>
-                    <span className="text-xs text-text-sub shrink-0 ml-1">
+                    <span className="text-lg text-text-sub shrink-0 ml-2">
                       {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
                     </span>
                   </div>
@@ -504,12 +510,13 @@ export default function RouteDetailPage() {
       </div>
 
       {/* ===== 6. 完登を記録 ===== */}
-      <div className="w-full px-4 mt-6">
+      <div className="py-4"></div>
+      <div className="w-full px-4">
         {user && !myAscent && (
           <button
             onClick={handleAscent}
             disabled={submitting}
-            className={`w-full py-6 rounded-xl text-3xl font-bold transition-colors ${
+            className={`w-full py-24 rounded-xl text-3xl font-bold transition-colors ${
               submitting
                 ? 'bg-border text-text-sub cursor-not-allowed'
                 : 'bg-primary text-white hover:bg-primary-dark'
@@ -520,11 +527,11 @@ export default function RouteDetailPage() {
         )}
 
         {myAscent && (
-          <div className="p-5 bg-primary-light rounded-xl border border-primary">
+          <div className="py-24 px-5 bg-primary-light rounded-xl border border-primary flex flex-col items-center justify-center">
             <p className="text-2xl text-primary font-bold">✅ 完登済み</p>
             <button
               onClick={handleDeleteAscent}
-              className="mt-3 px-5 py-2.5 text-xl text-text-sub border border-border rounded-lg hover:border-primary transition-colors"
+              className="mt-4 px-5 py-2.5 text-xl text-text-sub border border-border rounded-lg hover:border-primary transition-colors"
             >
               記録を取り消す
             </button>
@@ -534,7 +541,7 @@ export default function RouteDetailPage() {
         {!user && (
           <a
             href="/login"
-            className="block w-full py-6 rounded-xl text-3xl font-bold text-center bg-primary text-white hover:bg-primary-dark transition-colors"
+            className="block w-full py-24 rounded-xl text-3xl font-bold text-center bg-primary text-white hover:bg-primary-dark transition-colors"
           >
             ログインして記録する
           </a>
@@ -547,20 +554,23 @@ export default function RouteDetailPage() {
 
       {/* ===== 7. 課題編集｜課題削除 ===== */}
       {canEdit && (
-        <div className="w-full px-4 mt-6 flex gap-3">
-          <a
-            href={`/routes/${route.id}/edit`}
-            className="flex-1 py-4 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
-          >
-            編集する
-          </a>
-          <button
-            onClick={handleDeleteRoute}
-            className="flex-1 py-4 rounded-xl text-2xl font-bold border border-border text-text-sub hover:border-primary transition-colors"
-          >
-            削除する
-          </button>
-        </div>
+        <>
+          <div className="py-4"></div>
+          <div className="w-full px-4 flex gap-3">
+            <a
+              href={`/routes/${route.id}/edit`}
+              className="flex-1 py-8 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
+            >
+              編集する
+            </a>
+            <button
+              onClick={handleDeleteRoute}
+              className="flex-1 py-8 rounded-xl text-2xl font-bold border border-border text-text-sub hover:border-primary transition-colors"
+            >
+              削除する
+            </button>
+          </div>
+        </>
       )}
     </div>
   )
