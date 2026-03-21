@@ -437,14 +437,15 @@ export default function RouteDetailPage() {
       )}
 
       {/* ===== 5. お気に入り｜おすすめ（2カラム） ===== */}
-      <div className="py-4"></div>
+      <div style={{ height: '16px' }}></div>
       <div className="bg-card border-b border-border">
         <div className="w-full px-4 py-4 grid grid-cols-2 gap-3">
           {/* お気に入り保存ボタン */}
           {user ? (
             <button
               onClick={toggleFavorite}
-              className={`w-full py-16 rounded-xl text-2xl font-medium border transition-colors ${
+              style={{ paddingTop: '40px', paddingBottom: '40px' }}
+              className={`w-full rounded-xl text-2xl font-medium border transition-colors ${
                 isFavorited
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -460,7 +461,8 @@ export default function RouteDetailPage() {
           {user ? (
             <button
               onClick={toggleRecommend}
-              className={`w-full py-16 rounded-xl text-2xl font-medium border transition-colors ${
+              style={{ paddingTop: '40px', paddingBottom: '40px' }}
+              className={`w-full rounded-xl text-2xl font-medium border transition-colors ${
                 isRecommended
                   ? 'bg-primary text-white border-primary'
                   : 'bg-primary-light text-text-main border-border hover:border-primary'
@@ -470,7 +472,7 @@ export default function RouteDetailPage() {
               <span className="ml-1 text-xl">{recommendCount}</span>
             </button>
           ) : (
-            <div className="flex items-center justify-center py-16">
+            <div className="flex items-center justify-center" style={{ paddingTop: '40px', paddingBottom: '40px' }}>
               <p className="text-2xl text-text-main">👍 {recommendCount}</p>
             </div>
           )}
@@ -478,11 +480,11 @@ export default function RouteDetailPage() {
       </div>
 
       {/* ===== 5b. 完登者一覧 ===== */}
-      <div className="py-4"></div>
+      <div style={{ height: '16px' }}></div>
       <div className="bg-card border-b border-border">
         <div className="w-full px-4 py-4">
           <h3 className="text-2xl font-bold text-text-main mb-3">完登者（{ascents.length}人）</h3>
-          <div className="max-h-[640px] overflow-y-auto border border-border rounded-xl px-4 py-3">
+          <div className="overflow-y-auto border border-border rounded-xl px-4 py-3" style={{ maxHeight: '400px' }}>
             {ascents.length === 0 ? (
               <p className="text-xl text-text-sub text-center py-4">完登者なし</p>
             ) : (
@@ -510,13 +512,14 @@ export default function RouteDetailPage() {
       </div>
 
       {/* ===== 6. 完登を記録 ===== */}
-      <div className="py-4"></div>
+      <div style={{ height: '16px' }}></div>
       <div className="w-full px-4">
         {user && !myAscent && (
           <button
             onClick={handleAscent}
             disabled={submitting}
-            className={`w-full py-24 rounded-xl text-3xl font-bold transition-colors ${
+            style={{ paddingTop: '48px', paddingBottom: '48px' }}
+            className={`w-full rounded-xl text-3xl font-bold transition-colors ${
               submitting
                 ? 'bg-border text-text-sub cursor-not-allowed'
                 : 'bg-primary text-white hover:bg-primary-dark'
@@ -527,7 +530,10 @@ export default function RouteDetailPage() {
         )}
 
         {myAscent && (
-          <div className="py-24 px-5 bg-primary-light rounded-xl border border-primary flex flex-col items-center justify-center">
+          <div
+            className="px-5 bg-primary-light rounded-xl border border-primary flex flex-col items-center justify-center"
+            style={{ paddingTop: '48px', paddingBottom: '48px' }}
+          >
             <p className="text-2xl text-primary font-bold">✅ 完登済み</p>
             <button
               onClick={handleDeleteAscent}
@@ -541,7 +547,8 @@ export default function RouteDetailPage() {
         {!user && (
           <a
             href="/login"
-            className="block w-full py-24 rounded-xl text-3xl font-bold text-center bg-primary text-white hover:bg-primary-dark transition-colors"
+            style={{ paddingTop: '48px', paddingBottom: '48px' }}
+            className="block w-full rounded-xl text-3xl font-bold text-center bg-primary text-white hover:bg-primary-dark transition-colors"
           >
             ログインして記録する
           </a>
@@ -555,17 +562,19 @@ export default function RouteDetailPage() {
       {/* ===== 7. 課題編集｜課題削除 ===== */}
       {canEdit && (
         <>
-          <div className="py-4"></div>
+          <div style={{ height: '16px' }}></div>
           <div className="w-full px-4 flex gap-3">
             <a
               href={`/routes/${route.id}/edit`}
-              className="flex-1 py-8 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
+              style={{ paddingTop: '24px', paddingBottom: '24px' }}
+              className="flex-1 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
             >
               編集する
             </a>
             <button
               onClick={handleDeleteRoute}
-              className="flex-1 py-8 rounded-xl text-2xl font-bold border border-border text-text-sub hover:border-primary transition-colors"
+              style={{ paddingTop: '24px', paddingBottom: '24px' }}
+              className="flex-1 rounded-xl text-2xl font-bold border border-border text-text-sub hover:border-primary transition-colors"
             >
               削除する
             </button>
