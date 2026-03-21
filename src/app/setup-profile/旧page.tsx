@@ -41,10 +41,10 @@ export default function SetupProfile() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-bg px-4">
-      <div className="w-full">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-text-main">ニックネーム登録</h1>
-          <p className="text-2xl text-text-sub mt-3">他のユーザーに表示される名前です</p>
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-text-main">ニックネーム登録</h1>
+          <p className="text-sm text-text-sub mt-2">他のユーザーに表示される名前です</p>
         </div>
 
         <div className="bg-card rounded-xl border border-border p-6">
@@ -53,21 +53,20 @@ export default function SetupProfile() {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             placeholder="ニックネームを入力"
-            className="w-full px-4 py-4 rounded-xl border border-border bg-bg text-text-main text-2xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
+            className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-base focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSubmit()
             }}
           />
 
           {error && (
-            <p className="mt-3 text-xl text-primary">{error}</p>
+            <p className="mt-2 text-sm text-red-500">{error}</p>
           )}
 
           <button
             onClick={handleSubmit}
             disabled={loading}
-            style={{ paddingTop: '20px', paddingBottom: '20px', marginTop: '20px' }}
-            className={`w-full rounded-xl text-3xl font-bold transition-colors ${
+            className={`w-full mt-4 py-3 rounded-xl text-sm font-bold transition-colors ${
               loading
                 ? 'bg-border text-text-sub cursor-not-allowed'
                 : 'bg-primary text-white hover:bg-primary-dark'
