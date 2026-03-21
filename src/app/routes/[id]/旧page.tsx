@@ -25,6 +25,7 @@ type RouteDetail = {
 type Ascent = {
   id: string
   user_id: string
+  recommended: boolean
   created_at: string
   profiles: { nickname: string }[]
 }
@@ -40,10 +41,9 @@ export default function RouteDetailPage() {
   const [ascents, setAscents] = useState<Ascent[]>([])
   const [posterNickname, setPosterNickname] = useState('')
   const [myAscent, setMyAscent] = useState<Ascent | null>(null)
+  const [recommended, setRecommended] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false)
   const [favoriteCount, setFavoriteCount] = useState(0)
-  const [isRecommended, setIsRecommended] = useState(false)
-  const [recommendCount, setRecommendCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
@@ -80,18 +80,11 @@ export default function RouteDetailPage() {
       }
 
       // お気に入り数取得
-      const { count: favCount } = await supabase
+      const { count } = await supabase
         .from('favorites')
         .select('*', { count: 'exact', head: true })
         .eq('route_id', routeId)
-      setFavoriteCount(favCount || 0)
-
-      // おすすめ数取得（新テーブル）
-      const { count: recCount } = await supabase
-        .from('recommends')
-        .select('*', { count: 'exact', head: true })
-        .eq('route_id', routeId)
-      setRecommendCount(recCount || 0)
+      setFavoriteCount(count || 0)
 
       // 自分がお気に入り済みか
       if (user) {
@@ -102,15 +95,6 @@ export default function RouteDetailPage() {
           .eq('user_id', user.id)
           .maybeSingle()
         setIsFavorited(!!fav)
-
-        // 自分がおすすめ済みか
-        const { data: rec } = await supabase
-          .from('recommends')
-          .select('id')
-          .eq('route_id', routeId)
-          .eq('user_id', user.id)
-          .maybeSingle()
-        setIsRecommended(!!rec)
       }
 
       await fetchAscents(user?.id)
@@ -123,7 +107,7 @@ export default function RouteDetailPage() {
   const fetchAscents = async (userId?: string) => {
     const { data: ascentsData } = await supabase
       .from('ascents')
-      .select('id, user_id, created_at')
+      .select('id, user_id, recommended, created_at')
       .eq('route_id', routeId)
       .order('created_at', { ascending: false })
 
@@ -144,6 +128,7 @@ export default function RouteDetailPage() {
         const mine = ascentsWithProfile.find((a: any) => a.user_id === userId)
         if (mine) {
           setMyAscent(mine as Ascent)
+          setRecommended(mine.recommended)
         }
       }
     }
@@ -170,27 +155,6 @@ export default function RouteDetailPage() {
     }
   }
 
-  /* ===== おすすめトグル（新テーブル） ===== */
-  const toggleRecommend = async () => {
-    if (!user) return
-
-    if (isRecommended) {
-      await supabase
-        .from('recommends')
-        .delete()
-        .eq('route_id', routeId)
-        .eq('user_id', user.id)
-      setIsRecommended(false)
-      setRecommendCount(prev => prev - 1)
-    } else {
-      await supabase
-        .from('recommends')
-        .insert({ route_id: routeId, user_id: user.id })
-      setIsRecommended(true)
-      setRecommendCount(prev => prev + 1)
-    }
-  }
-
   /* ===== 完登記録 ===== */
   const handleAscent = async () => {
     if (!user) {
@@ -203,6 +167,7 @@ export default function RouteDetailPage() {
     const { error } = await supabase.from('ascents').insert({
       route_id: routeId,
       user_id: user.id,
+      recommended,
     })
 
     if (error) {
@@ -226,6 +191,7 @@ export default function RouteDetailPage() {
 
     await supabase.from('ascents').delete().eq('id', myAscent.id)
     setMyAscent(null)
+    setRecommended(false)
     setMessage('記録を取り消しました')
     await fetchAscents(user?.id)
   }
@@ -305,6 +271,8 @@ export default function RouteDetailPage() {
     })
   }
 
+  const getRecommendCount = () => ascents.filter((a) => a.recommended).length
+
   // 全属性タグをまとめる
   const allTags: string[] = [
     ...(route?.tags || []),
@@ -332,14 +300,31 @@ export default function RouteDetailPage() {
     )
   }
 
+  const recommendCount = getRecommendCount()
   const canEdit = user && (user.id === route.user_id || user.email === ADMIN_EMAIL)
 
   /* ========== UI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-48">
+    <div className="min-h-screen bg-bg pb-32">
 
-      {/* ===== 1. 画像 ===== */}
-      <div className="w-full">
+      {/* ===== 1. 属性タグ ===== */}
+      {allTags.length > 0 && (
+        <div className="bg-card border-b border-border">
+          <div className="w-full max-w-screen-sm mx-auto px-4 py-3 flex flex-wrap gap-2">
+            {allTags.map((tag) => (
+              <span
+                key={tag}
+                className="px-5 py-2 rounded-full text-2xl font-medium bg-primary-light text-primary border border-border"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===== 2. 画像 ===== */}
+      <div className="w-full max-w-screen-sm mx-auto">
         <img
           src={route.image_url}
           alt="課題写真"
@@ -347,6 +332,7 @@ export default function RouteDetailPage() {
           onClick={openImage}
           className="w-full cursor-pointer"
         />
+        <p className="text-center text-xl text-text-sub mt-2">タップで拡大</p>
       </div>
 
       {/* フルスクリーン拡大 */}
@@ -378,190 +364,171 @@ export default function RouteDetailPage() {
         </div>
       )}
 
-      {/* ===== 2. 属性タグ ===== */}
-      {allTags.length > 0 && (
-        <div className="bg-card border-b border-border">
-          <div className="w-full px-4 py-3 flex flex-wrap gap-2">
-            {allTags.map((tag) => (
-              <span
-                key={tag}
-                className="px-5 py-2 rounded-full text-2xl font-medium bg-primary-light text-primary border border-border"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="w-full px-4">
 
-      {/* ===== 3. グレード｜投稿者+投稿日｜保存数+完投数（3カラム） ===== */}
-      <div className="bg-card border-b border-border">
-        <div className="w-full px-4 py-4 grid grid-cols-3 items-center">
-          {/* グレード */}
-          <div>
-            <p className="text-5xl font-bold text-text-main">{route.grade}</p>
+        {/* ===== 3. 投稿者名、グレード、お気に入り数、完登者数 ===== */}
+        <div className="pt-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-5xl font-bold text-text-main">{route.grade}</p>
+              <p className="text-2xl text-text-sub mt-1">
+                {route.gyms?.[0]?.name} / {route.walls?.[0]?.name}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-text-main">♡ {favoriteCount}</p>
+                <p className="text-lg text-text-sub">保存</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-text-main">✓ {ascents.length}</p>
+                <p className="text-lg text-text-sub">完登</p>
+              </div>
+              {recommendCount > 0 && (
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-text-main">👍 {recommendCount}</p>
+                  <p className="text-lg text-text-sub">おすすめ</p>
+                </div>
+              )}
+            </div>
           </div>
-          {/* 投稿者 + 投稿日 */}
-          <div className="text-center">
-            <a
-              href={`/user/${route.user_id}`}
-              className="text-2xl text-primary hover:underline"
-            >
+          <p className="text-xl text-text-sub mt-3">
+            投稿:
+            <a href={`/user/${route.user_id}`} className="text-primary ml-1 hover:underline">
               {posterNickname}
             </a>
-            <p className="text-xl text-text-sub mt-1">
-              {new Date(route.created_at).toLocaleDateString('ja-JP')}
-            </p>
-          </div>
-          {/* 保存数 + 完投数 */}
-          <div className="flex items-center justify-end gap-4">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-text-main">♡ {favoriteCount}</p>
-              <p className="text-lg text-text-sub">保存</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-text-main">✓ {ascents.length}</p>
-              <p className="text-lg text-text-sub">完登</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===== 4. 課題の説明文 ===== */}
-      {route.description && (
-        <div className="bg-card border-b border-border">
-          <p className="w-full px-4 py-4 text-2xl text-text-main">
-            {route.description}
+            <span className="mx-1">・</span>
+            {new Date(route.created_at).toLocaleDateString('ja-JP')}
           </p>
         </div>
-      )}
 
-      {/* ===== 5. お気に入り｜おすすめ｜完登者一覧（3カラム） ===== */}
-      <div className="bg-card border-b border-border">
-        <div className="w-full px-4 py-4 grid grid-cols-3 gap-3 items-start">
-          {/* お気に入り保存ボタン */}
-          {user ? (
+        {/* ===== 4. 一文 + お気に入りボタン ===== */}
+        <div className="mt-4 flex items-center justify-between border-t border-b border-border py-4">
+          <p className="text-2xl text-text-main flex-1">
+            {route.description || ''}
+          </p>
+          {user && (
             <button
               onClick={toggleFavorite}
-              className={`w-full py-4 rounded-xl text-2xl font-medium border transition-colors ${
-                isFavorited
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-primary-light text-text-main border-border hover:border-primary'
-              }`}
+              className={`ml-3 flex items-center gap-2 px-6 py-3 rounded-full text-2xl font-medium border transition-colors ${isFavorited
+                ? 'bg-primary text-white border-primary'
+                : 'bg-card text-text-sub border-border hover:border-primary'
+                }`}
             >
-              {isFavorited ? '♥ 保存済' : '♡ 保存'}
+              {isFavorited ? '♥' : '♡'} 保存
             </button>
-          ) : (
-            <div />
           )}
+        </div>
 
-          {/* おすすめボタン */}
-          {user ? (
-            <button
-              onClick={toggleRecommend}
-              className={`w-full py-4 rounded-xl text-2xl font-medium border transition-colors ${
-                isRecommended
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-primary-light text-text-main border-border hover:border-primary'
-              }`}
-            >
-              {isRecommended ? '👍 済' : '👍 おすすめ'}
-              <span className="ml-1 text-xl">{recommendCount}</span>
-            </button>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-2xl text-text-main">👍 {recommendCount}</p>
-              <p className="text-lg text-text-sub">おすすめ</p>
+        {/* ===== 5. 完登記録フォーム ===== */}
+        <div className="mt-6">
+          <h2 className="text-3xl font-bold text-text-main">完登記録（{ascents.length}人）</h2>
+
+          {user && !myAscent && (
+            <div className="mt-4 p-4 bg-primary-light rounded-xl">
+              {/* おすすめ */}
+              <p className="text-2xl font-bold text-text-main mb-4">この課題をおすすめする？</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setRecommended(true)}
+                  className={`flex-1 py-4 rounded-xl text-2xl font-medium border transition-colors ${recommended
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-card text-text-main border-border hover:border-primary'
+                    }`}
+                >
+                  👍 おすすめ！
+                </button>
+                <button
+                  onClick={() => setRecommended(false)}
+                  className={`flex-1 py-4 rounded-xl text-2xl font-medium border transition-colors ${!recommended
+                    ? 'bg-card text-text-main border-text-sub'
+                    : 'bg-card text-text-main border-border hover:border-primary'
+                    }`}
+                >
+                  しない
+                </button>
+              </div>
+
+              {/* 登録ボタン */}
+              <button
+                onClick={handleAscent}
+                disabled={submitting}
+                className={`mt-5 w-full py-4 rounded-xl text-2xl font-bold transition-colors ${submitting
+                  ? 'bg-border text-text-sub cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+                  }`}
+              >
+                {submitting ? '記録中...' : '完登を記録する'}
+              </button>
             </div>
           )}
 
-          {/* 完登者一覧（スクロール） */}
-          <div className="max-h-[160px] overflow-y-auto border border-border rounded-xl px-3 py-2">
-            {ascents.length === 0 ? (
-              <p className="text-lg text-text-sub text-center py-2">完登者なし</p>
-            ) : (
-              <div className="space-y-1">
-                {ascents.map((ascent) => (
-                  <div
-                    key={ascent.id}
-                    className="flex items-center justify-between py-1"
+          {myAscent && (
+            <div className="mt-4 p-5 bg-green-50 rounded-xl border border-green-200">
+              <p className="text-2xl text-green-700">
+                ✅ 完登済み
+                {myAscent.recommended && ' 👍 おすすめ'}
+              </p>
+              <button
+                onClick={handleDeleteAscent}
+                className="mt-3 px-5 py-2.5 text-xl bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                記録を取り消す
+              </button>
+            </div>
+          )}
+
+          {message && (
+            <p className="mt-3 text-xl text-text-sub">{message}</p>
+          )}
+        </div>
+
+        {/* ===== 6. 完登者一覧 ===== */}
+        {ascents.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-2xl font-bold text-text-main mb-3">完登者</h3>
+            <div className="space-y-0">
+              {ascents.map((ascent) => (
+                <div
+                  key={ascent.id}
+                  className="flex items-center justify-between py-3 border-b border-border"
+                >
+                  <a
+                    href={`/user/${ascent.user_id}`}
+                    className="text-2xl text-primary hover:underline"
                   >
-                    <a
-                      href={`/user/${ascent.user_id}`}
-                      className="text-lg text-primary hover:underline truncate"
-                    >
-                      {ascent.profiles?.[0]?.nickname}
-                    </a>
-                    <span className="text-xs text-text-sub shrink-0 ml-1">
+                    {ascent.profiles?.[0]?.nickname}
+                  </a>
+                  <div className="flex items-center gap-2">
+                    {ascent.recommended && <span className="text-2xl">👍</span>}
+                    <span className="text-lg text-text-sub">
                       {new Date(ascent.created_at).toLocaleDateString('ja-JP')}
                     </span>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* ===== 6. 完登を記録 ===== */}
-      <div className="w-full px-4 mt-6">
-        {user && !myAscent && (
-          <button
-            onClick={handleAscent}
-            disabled={submitting}
-            className={`w-full py-6 rounded-xl text-3xl font-bold transition-colors ${
-              submitting
-                ? 'bg-border text-text-sub cursor-not-allowed'
-                : 'bg-primary text-white hover:bg-primary-dark'
-            }`}
-          >
-            {submitting ? '記録中...' : '完登を記録する'}
-          </button>
         )}
 
-        {myAscent && (
-          <div className="p-5 bg-primary-light rounded-xl border border-primary">
-            <p className="text-2xl text-primary font-bold">✅ 完登済み</p>
-            <button
-              onClick={handleDeleteAscent}
-              className="mt-3 px-5 py-2.5 text-xl text-text-sub border border-border rounded-lg hover:border-primary transition-colors"
+        {/* ===== 7. 編集・削除ボタン ===== */}
+        {canEdit && (
+          <div className="mt-8 flex gap-3">
+            <a
+              href={`/routes/${route.id}/edit`}
+              className="flex-1 py-4 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
             >
-              記録を取り消す
+              編集する
+            </a>
+            <button
+              onClick={handleDeleteRoute}
+              className="flex-1 py-4 rounded-xl text-2xl font-bold bg-red-500 text-white hover:bg-red-600 transition-colors"
+            >
+              削除する
             </button>
           </div>
         )}
-
-        {!user && (
-          <a
-            href="/login"
-            className="block w-full py-6 rounded-xl text-3xl font-bold text-center bg-primary text-white hover:bg-primary-dark transition-colors"
-          >
-            ログインして記録する
-          </a>
-        )}
-
-        {message && (
-          <p className="mt-3 text-xl text-text-sub">{message}</p>
-        )}
       </div>
-
-      {/* ===== 7. 課題編集｜課題削除 ===== */}
-      {canEdit && (
-        <div className="w-full px-4 mt-6 flex gap-3">
-          <a
-            href={`/routes/${route.id}/edit`}
-            className="flex-1 py-4 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
-          >
-            編集する
-          </a>
-          <button
-            onClick={handleDeleteRoute}
-            className="flex-1 py-4 rounded-xl text-2xl font-bold border border-border text-text-sub hover:border-primary transition-colors"
-          >
-            削除する
-          </button>
-        </div>
-      )}
     </div>
   )
 }
