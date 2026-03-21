@@ -484,7 +484,7 @@ export default function RouteDetailPage() {
       <div className="bg-card border-b border-border">
         <div className="w-full px-4 py-4">
           <h3 className="text-2xl font-bold text-text-main mb-3">完登者（{ascents.length}人）</h3>
-          <div className="overflow-y-auto border border-border rounded-xl px-4 py-3" style={{ maxHeight: '400px' }}>
+          <div className="overflow-y-auto border border-border rounded-xl px-4 py-3" style={{ maxHeight: '144px' }}>
             {ascents.length === 0 ? (
               <p className="text-xl text-text-sub text-center py-4">完登者なし</p>
             ) : (
