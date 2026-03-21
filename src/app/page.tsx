@@ -721,7 +721,7 @@ export default function Home() {
               <Link
                 key={route.id}
                 href={`/routes/${route.id}`}
-                className="block bg-card overflow-hidden"
+                className="block bg-card overflow-hidden rounded-xl"
               >
                 <div className="aspect-[3/2] overflow-hidden">
                   <img
