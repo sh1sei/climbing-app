@@ -288,14 +288,14 @@ export default function FavoritesPage() {
               <Link
                 key={route.id}
                 href={`/routes/${route.id}`}
-                className="block bg-card overflow-hidden"
+                className="block bg-card overflow-hidden rounded-xl"
               >
                 <div className="aspect-[3/2] overflow-hidden">
                   <img
                     src={route.image_url}
                     alt="課題写真"
                     loading="lazy"
-                    className="w-full h-full object-cover object-[center_70%]"
+                    className="w-full h-full object-cover object-[center_70%] rounded-xl"
                   />
                 </div>
                 <div className="px-3 py-3 flex items-center justify-between">

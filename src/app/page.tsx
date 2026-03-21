@@ -728,7 +728,7 @@ export default function Home() {
                     src={route.image_url}
                     alt="課題写真"
                     loading="lazy"
-                    className="w-full h-full object-cover object-[center_70%]"
+                    className="w-full h-full object-cover object-[center_70%] rounded-xl"
                   />
                 </div>
                 <div className="px-3 py-3 flex items-center justify-between">
