@@ -499,7 +499,6 @@ export default function Home() {
       {/* ===== フィルターバー（横スクロール） ===== */}
       <div className="sticky top-14 z-40 bg-card border-b border-border overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-2 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <div className="h-30 bg-bg"></div>
           {/* グレードFrom */}
           <button
             ref={gradeFromRef}
