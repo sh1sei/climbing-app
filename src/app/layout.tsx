@@ -26,13 +26,6 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="bg-bg">
-        <div style={{position:'fixed',top:0,left:0,zIndex:9999,background:'red',color:'white',fontSize:'20px',padding:'4px 8px'}} id="dbg"></div>
-        <script dangerouslySetInnerHTML={{__html:`
-          function u(){
-            document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px | screen:'+screen.width+'px';
-          }
-          u();setInterval(u,2000);
-        `}}/>
         <main className="pb-[env(safe-area-inset-bottom)]">
           {children}
         </main>
