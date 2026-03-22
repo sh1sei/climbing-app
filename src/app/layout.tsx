@@ -39,13 +39,15 @@ export default function RootLayout({
           function u(){
             var wide=[];
             document.querySelectorAll('*').forEach(function(el){
-              if(el.scrollWidth>400){
-                var id=el.id?'#'+el.id:'';
-                var cls=el.className?'.'+String(el.className).split(' ').slice(0,2).join('.'):'';
-                wide.push(el.tagName+id+cls+':'+el.scrollWidth+'px')
+              if(el.scrollWidth>400 && el.scrollWidth===el.offsetWidth){
+                var tag=el.tagName;
+                var cls=String(el.className||'').slice(0,60);
+                var kids=el.children.length;
+                var html=el.innerHTML.slice(0,30).replace(/</g,'');
+                wide.push(tag+'{'+cls+'}kids:'+kids+'>>'+html)
               }
             });
-            document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px | total:'+wide.length+' | '+wide.join(' | ');
+            document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px|'+wide.join(' || ');
           }
           u();setTimeout(u,3000);setTimeout(u,6000);
         `}}/>
