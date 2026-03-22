@@ -36,20 +36,10 @@ export default function RootLayout({
       <body className="bg-bg">
         <div style={{position:'fixed',top:0,left:0,zIndex:9999,background:'red',color:'white',fontSize:'20px',padding:'4px 8px'}} id="dbg"></div>
         <script dangerouslySetInnerHTML={{__html:`
-          function u(){
-            var wide=[];
-            document.querySelectorAll('*').forEach(function(el){
-              if(el.scrollWidth>400 && el.scrollWidth===el.offsetWidth){
-                var tag=el.tagName;
-                var cls=String(el.className||'').slice(0,60);
-                var kids=el.children.length;
-                var html=el.innerHTML.slice(0,30).replace(/</g,'');
-                wide.push(tag+'{'+cls+'}kids:'+kids+'>>'+html)
-              }
-            });
-            document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px|'+wide.join(' || ');
+            function u(){
+              document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px | screen:'+screen.width+'px';
           }
-          u();setTimeout(u,3000);setTimeout(u,6000);
+          u();setInterval(u,2000);
         `}}/>
         <main className="pb-[env(safe-area-inset-bottom)]">
           {children}
