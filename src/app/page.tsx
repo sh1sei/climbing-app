@@ -476,8 +476,8 @@ export default function Home() {
     <div className="min-h-screen bg-bg overflow-hidden" style={{ paddingBottom: '160px' }}>
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="w-full px-4 h-24 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-primary tracking-wide">カベログ</h1>
+        <div className="w-full px-4 h-12 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
             <Link
               href={`/user/${user.id}`}
@@ -497,7 +497,7 @@ export default function Home() {
       </header>
 
       {/* ===== フィルターバー（横スクロール） ===== */}
-      <div className="sticky top-24 z-40 bg-card border-b border-border overflow-hidden">
+      <div className="sticky top-14 z-40 bg-card border-b border-border overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-2 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="h-30 bg-bg"></div>
           {/* グレードFrom */}
