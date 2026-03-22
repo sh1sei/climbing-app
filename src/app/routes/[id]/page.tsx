@@ -342,7 +342,7 @@ export default function RouteDetailPage() {
 
   /* ========== UI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-48">
+    <div className="min-h-screen bg-bg" style={{ paddingBottom: '200px' }}>
 
       {/* ===== 1. 画像 ===== */}
       <div className="w-full">
