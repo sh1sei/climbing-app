@@ -21,7 +21,7 @@
 html {
   /* 画面幅に応じてベースfont-sizeを自動調整 */
   /* 320px幅 → 14px、400px幅 → 16px、500px以上 → 18px */
-  font-size: clamp(14px, 3.5vw, 18px);
+  font-size: min(4vw, 20px);
 }
 
 html, body {
