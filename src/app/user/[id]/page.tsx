@@ -323,7 +323,7 @@ export default function UserPage() {
 
   /* ========== メインUI ========== */
   return (
-    <div className="min-h-screen bg-bg pb-60">
+    <div className="min-h-screen bg-bg pb-80">
       {/* ヘッダー */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="w-full px-4 h-24 flex items-center justify-center">

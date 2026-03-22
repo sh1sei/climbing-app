@@ -477,7 +477,7 @@ export default function Home() {
       {/* ===== ヘッダー ===== */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="w-full px-4 h-24 flex items-center justify-between">
-          <h1 className="text-4xl font-bold text-primary tracking-wide">カベログ</h1>
+          <h1 className="text-3xl font-bold text-primary tracking-wide">カベログ</h1>
           {user ? (
             <Link
               href={`/user/${user.id}`}
