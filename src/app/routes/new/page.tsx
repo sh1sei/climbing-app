@@ -358,7 +358,7 @@ export default function NewRoute() {
             onChange={(e) => {
               if (e.target.value.length <= 30) setDescription(e.target.value)
             }}
-            placeholder="例：ランジが核心！"
+            placeholder="例：投稿者のコメント"
             className="w-full px-4 py-4 rounded-xl border border-border bg-card text-text-main text-2xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
           />
           <p className="text-xl text-text-sub mt-2 text-right">{description.length}/30</p>

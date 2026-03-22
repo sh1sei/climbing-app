@@ -215,12 +215,12 @@ export default function FavoritesPage() {
     ? 'すべてのジム'
     : gyms.find(g => g.id === selectedGymId)?.name || 'ジム'
 
-  const filterBtnBase = 'px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap'
+  const filterBtnBase = 'px-5 py-3 rounded-full text-2xl font-medium border transition-colors whitespace-nowrap'
   const filterBtnActive = 'bg-primary text-white border-primary'
   const filterBtnInactive = 'bg-primary-light text-text-main border-border hover:border-primary'
 
   const dropdownItemClass = (isActive: boolean) =>
-    `block w-full px-8 py-6 text-5xl text-left hover:bg-primary-light whitespace-nowrap ${
+    `block w-full px-6 py-4 text-2xl text-left hover:bg-primary-light whitespace-nowrap ${
       isActive ? 'bg-primary-light text-primary font-bold' : ''
     }`
 

@@ -451,7 +451,7 @@ export default function RouteDetailPage() {
           {user ? (
             <button
               onClick={toggleFavorite}
-              style={{ paddingTop: '40px', paddingBottom: '40px' }}
+              style={{ paddingTop: '20px', paddingBottom: '20px' }}
               className={`w-full rounded-xl text-2xl font-medium border transition-colors ${
                 isFavorited
                   ? 'bg-primary text-white border-primary'
@@ -468,7 +468,7 @@ export default function RouteDetailPage() {
           {user ? (
             <button
               onClick={toggleRecommend}
-              style={{ paddingTop: '40px', paddingBottom: '40px' }}
+              style={{ paddingTop: '20px', paddingBottom: '20px' }}
               className={`w-full rounded-xl text-2xl font-medium border transition-colors ${
                 isRecommended
                   ? 'bg-primary text-white border-primary'
@@ -479,7 +479,7 @@ export default function RouteDetailPage() {
               <span className="ml-1 text-xl">{recommendCount}</span>
             </button>
           ) : (
-            <div className="flex items-center justify-center" style={{ paddingTop: '40px', paddingBottom: '40px' }}>
+            <div className="flex items-center justify-center" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
               <p className="text-2xl text-text-main">👍 {recommendCount}</p>
             </div>
           )}
@@ -525,7 +525,7 @@ export default function RouteDetailPage() {
           <button
             onClick={handleAscent}
             disabled={submitting}
-            style={{ paddingTop: '48px', paddingBottom: '48px' }}
+            style={{ paddingTop: '24px', paddingBottom: '24px' }}
             className={`w-full rounded-xl text-3xl font-bold transition-colors ${
               submitting
                 ? 'bg-border text-text-sub cursor-not-allowed'
@@ -539,7 +539,7 @@ export default function RouteDetailPage() {
         {myAscent && (
           <div
             className="px-5 bg-primary-light rounded-xl border border-primary flex flex-col items-center justify-center"
-            style={{ paddingTop: '48px', paddingBottom: '48px' }}
+            style={{ paddingTop: '24px', paddingBottom: '24px' }}
           >
             <p className="text-2xl text-primary font-bold">✅ 完登済み</p>
             <button
@@ -554,7 +554,7 @@ export default function RouteDetailPage() {
         {!user && (
           <Link
             href="/login"
-            style={{ paddingTop: '48px', paddingBottom: '48px' }}
+            style={{ paddingTop: '24px', paddingBottom: '24px' }}
             className="block w-full rounded-xl text-3xl font-bold text-center bg-primary text-white hover:bg-primary-dark transition-colors"
           >
             ログインして記録する
@@ -573,14 +573,14 @@ export default function RouteDetailPage() {
           <div className="w-full px-4 flex gap-3">
             <Link
               href={`/routes/${route.id}/edit`}
-              style={{ paddingTop: '24px', paddingBottom: '24px' }}
+              style={{ paddingTop: '12px', paddingBottom: '12px' }}
               className="flex-1 text-center rounded-xl text-2xl font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
             >
               編集する
             </Link>
             <button
               onClick={handleDeleteRoute}
-              style={{ paddingTop: '24px', paddingBottom: '24px' }}
+              style={{ paddingTop: '12px', paddingBottom: '12px' }}
               className="flex-1 rounded-xl text-2xl font-bold border border-border text-text-sub hover:border-primary transition-colors"
             >
               削除する
