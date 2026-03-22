@@ -55,13 +55,14 @@ export default function UserPage() {
   const [showGymRequest, setShowGymRequest] = useState(false)
   const [showWallRequest, setShowWallRequest] = useState(false)
   const [reqGymName, setReqGymName] = useState('')
-  const [reqCoords, setReqCoords] = useState('')
+  const [reqAddress, setReqAddress] = useState('')
+  const [reqLatitude, setReqLatitude] = useState('')
+  const [reqLongitude, setReqLongitude] = useState('')
   const [reqWallNames, setReqWallNames] = useState('')
   const [reqGymNote, setReqGymNote] = useState('')
   const [reqWallGymId, setReqWallGymId] = useState('')
   const [reqWallName, setReqWallName] = useState('')
   const [reqWallNote, setReqWallNote] = useState('')
-  const [existingWalls, setExistingWalls] = useState<string[]>([])
   const [requestMessage, setRequestMessage] = useState('')
   const [requestSubmitting, setRequestSubmitting] = useState(false)
   const supabase = createClient()
@@ -159,19 +160,7 @@ export default function UserPage() {
       setTimeout(() => setRequestMessage(''), 3000)
       return
     }
-
     setRequestSubmitting(true)
-
-    let latitude: number | null = null
-    let longitude: number | null = null
-
-    if (reqCoords.trim()) {
-      const parts = reqCoords.split(',').map((s) => s.trim())
-      if (parts.length === 2 && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]))) {
-        latitude = parseFloat(parts[0])
-        longitude = parseFloat(parts[1])
-      }
-    }
 
     const wallNamesArray = reqWallNames
       .split(/[,、\n]/)
@@ -181,8 +170,9 @@ export default function UserPage() {
     const { error } = await supabase.from('gym_requests').insert({
       user_id: currentUser!.id,
       gym_name: reqGymName.trim(),
-      latitude,
-      longitude,
+      address: reqAddress.trim() || null,
+      latitude: reqLatitude ? parseFloat(reqLatitude) : null,
+      longitude: reqLongitude ? parseFloat(reqLongitude) : null,
       wall_names: wallNamesArray.length > 0 ? wallNamesArray : null,
       note: reqGymNote.trim() || null,
     })
@@ -193,7 +183,9 @@ export default function UserPage() {
     } else {
       setRequestMessage('ジム追加リクエストを送信しました！')
       setReqGymName('')
-      setReqCoords('')
+      setReqAddress('')
+      setReqLatitude('')
+      setReqLongitude('')
       setReqWallNames('')
       setReqGymNote('')
       setShowGymRequest(false)
@@ -202,19 +194,6 @@ export default function UserPage() {
   }
 
   /* ===== 壁追加リクエスト ===== */
-  const handleWallGymChange = async (gymId: string) => {
-    setReqWallGymId(gymId)
-    setExistingWalls([])
-    if (gymId) {
-      const { data } = await supabase
-        .from('walls')
-        .select('name')
-        .eq('gym_id', gymId)
-        .order('name')
-      if (data) setExistingWalls(data.map((w: any) => w.name))
-    }
-  }
-
   const handleWallRequest = async () => {
     if (!reqWallGymId || !reqWallName.trim()) {
       setRequestMessage('ジムと壁の名前を入力してください')
@@ -577,19 +556,41 @@ export default function UserPage() {
                     type="text"
                     value={reqGymName}
                     onChange={(e) => setReqGymName(e.target.value)}
-                    placeholder="ジム名"
+                    placeholder="例：ボルダリングジム○○"
                     className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">緯度, 経度</label>
+                  <label className="block text-xl font-bold text-text-main mb-2">住所</label>
                   <input
                     type="text"
-                    value={reqCoords}
-                    onChange={(e) => setReqCoords(e.target.value)}
-                    placeholder="例：35.6812, 139.7671"
+                    value={reqAddress}
+                    onChange={(e) => setReqAddress(e.target.value)}
+                    placeholder="例：東京都渋谷区..."
                     className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
                   />
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xl font-bold text-text-main mb-2">緯度</label>
+                    <input
+                      type="text"
+                      value={reqLatitude}
+                      onChange={(e) => setReqLatitude(e.target.value)}
+                      placeholder="35.6812"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xl font-bold text-text-main mb-2">経度</label>
+                    <input
+                      type="text"
+                      value={reqLongitude}
+                      onChange={(e) => setReqLongitude(e.target.value)}
+                      placeholder="139.7671"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xl font-bold text-text-main mb-2">壁の名前（カンマ区切り）</label>
@@ -633,7 +634,7 @@ export default function UserPage() {
                   <label className="block text-xl font-bold text-text-main mb-2">ジム *</label>
                   <select
                     value={reqWallGymId}
-                    onChange={(e) => handleWallGymChange(e.target.value)}
+                    onChange={(e) => setReqWallGymId(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors"
                   >
                     <option value="">ジムを選択</option>
@@ -642,18 +643,6 @@ export default function UserPage() {
                     ))}
                   </select>
                 </div>
-                {existingWalls.length > 0 && (
-                  <div className="p-3 bg-bg rounded-xl">
-                    <p className="text-lg text-text-sub mb-2">登録済みの壁：</p>
-                    <div className="flex flex-wrap gap-2">
-                      {existingWalls.map((name) => (
-                        <span key={name} className="px-3 py-1 rounded-full text-lg bg-primary-light text-primary border border-border">
-                          {name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <div>
                   <label className="block text-xl font-bold text-text-main mb-2">壁の名前 *</label>
                   <input
