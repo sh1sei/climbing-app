@@ -466,7 +466,7 @@ export default function Home() {
   }
 
   /* ===== フィルターボタン共通スタイル ===== */
-  const filterBtnBase = 'px-10 py-6 rounded-full text-5xl font-medium border transition-colors whitespace-nowrap'
+  const filterBtnBase = 'px-7 py-4 rounded-full text-3xl font-medium border transition-colors whitespace-nowrap'
   const filterBtnActive = 'bg-primary text-white border-primary'
   const filterBtnInactive = 'bg-primary-light text-text-main border-border hover:border-primary'
 
@@ -497,7 +497,7 @@ export default function Home() {
 
       {/* ===== フィルターバー（横スクロール） ===== */}
       <div className="sticky top-24 z-40 bg-card border-b border-border">
-        <div className="flex items-center gap-3 px-4 py-5 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex items-center gap-3 px-4 py-2 overflow-x-auto scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="h-30 bg-bg"></div>
           {/* グレードFrom */}
           <button
