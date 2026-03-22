@@ -40,12 +40,14 @@ export default function RootLayout({
             var wide=[];
             document.querySelectorAll('*').forEach(function(el){
               if(el.scrollWidth>400){
-               wide.push(el.tagName+'.'+el.className.split(' ')[0]+':'+el.scrollWidth+'px')
+                var id=el.id?'#'+el.id:'';
+                var cls=el.className?'.'+String(el.className).split(' ').slice(0,2).join('.'):'';
+                wide.push(el.tagName+id+cls+':'+el.scrollWidth+'px')
               }
             });
-            document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px | '+wide.slice(0,5).join(' | ');
+            document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px | total:'+wide.length+' | '+wide.join(' | ');
           }
-          u();setTimeout(u,2000);setTimeout(u,5000);
+          u();setTimeout(u,3000);setTimeout(u,6000);
         `}}/>
         <main className="pb-[env(safe-area-inset-bottom)]">
           {children}
