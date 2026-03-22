@@ -72,9 +72,9 @@ export default function UserPage() {
   /* ===== ログアウト ===== */
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/')
+    window.location.href = '/'
   }
-
+  
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
