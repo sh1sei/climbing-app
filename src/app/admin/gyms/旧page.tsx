@@ -20,31 +20,6 @@ type Wall = {
   gym_id: string
 }
 
-type GymRequest = {
-  id: string
-  user_id: string
-  gym_name: string
-  latitude: number | null
-  longitude: number | null
-  wall_names: string[] | null
-  note: string | null
-  status: string
-  created_at: string
-  profiles?: { nickname: string }[]
-}
-
-type WallRequest = {
-  id: string
-  user_id: string
-  gym_id: string
-  wall_name: string
-  note: string | null
-  status: string
-  created_at: string
-  profiles?: { nickname: string }[]
-  gym_name?: string
-}
-
 /* ========== コンポーネント ========== */
 
 export default function AdminGyms() {
@@ -58,13 +33,10 @@ export default function AdminGyms() {
   const [loading, setLoading] = useState(false)
   const [newWallNames, setNewWallNames] = useState<Record<string, string>>({})
   const [expandedGym, setExpandedGym] = useState<string | null>(null)
-  const [gymRequests, setGymRequests] = useState<GymRequest[]>([])
-  const [wallRequests, setWallRequests] = useState<WallRequest[]>([])
   const supabase = createClient()
 
   useEffect(() => {
     fetchGyms()
-    fetchRequests()
   }, [])
 
   const fetchGyms = async () => {
@@ -191,115 +163,6 @@ export default function AdminGyms() {
     input.click()
   }
 
-  /* ===== リクエスト関連 ===== */
-
-  const fetchRequests = async () => {
-    // ジム追加リクエスト取得
-    const { data: gymReqData } = await supabase
-      .from('gym_requests')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-
-    if (gymReqData) {
-      const withProfile = await Promise.all(
-        gymReqData.map(async (r: any) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('nickname')
-            .eq('id', r.user_id)
-            .single()
-          return { ...r, profiles: profile ? [profile] : [] }
-        })
-      )
-      setGymRequests(withProfile)
-    }
-
-    // 壁追加リクエスト取得
-    const { data: wallReqData } = await supabase
-      .from('wall_requests')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-
-    if (wallReqData) {
-      const withDetails = await Promise.all(
-        wallReqData.map(async (r: any) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('nickname')
-            .eq('id', r.user_id)
-            .single()
-          const { data: gym } = await supabase
-            .from('gyms')
-            .select('name')
-            .eq('id', r.gym_id)
-            .single()
-          return { ...r, profiles: profile ? [profile] : [], gym_name: gym?.name || '' }
-        })
-      )
-      setWallRequests(withDetails)
-    }
-  }
-
-  const handleApproveGymRequest = async (req: GymRequest) => {
-    // ジムを登録
-    const { data: newGym, error: gymError } = await supabase.from('gyms').insert({
-      name: req.gym_name,
-      latitude: req.latitude || 0,
-      longitude: req.longitude || 0,
-    }).select().single()
-
-    if (gymError || !newGym) {
-      alert('ジムの登録に失敗しました')
-      return
-    }
-
-    // 壁も登録
-    if (req.wall_names && req.wall_names.length > 0) {
-      const wallInserts = req.wall_names.map(name => ({
-        gym_id: newGym.id,
-        name,
-      }))
-      await supabase.from('walls').insert(wallInserts)
-    }
-
-    // ステータスを更新
-    await supabase.from('gym_requests').update({ status: 'approved' }).eq('id', req.id)
-
-    fetchGyms()
-    fetchRequests()
-  }
-
-  const handleRejectGymRequest = async (req: GymRequest) => {
-    if (!confirm(`「${req.gym_name}」のリクエストを却下しますか？`)) return
-    await supabase.from('gym_requests').update({ status: 'rejected' }).eq('id', req.id)
-    fetchRequests()
-  }
-
-  const handleApproveWallRequest = async (req: WallRequest) => {
-    const { error } = await supabase.from('walls').insert({
-      gym_id: req.gym_id,
-      name: req.wall_name,
-    })
-
-    if (error) {
-      alert('壁の登録に失敗しました')
-      return
-    }
-
-    await supabase.from('wall_requests').update({ status: 'approved' }).eq('id', req.id)
-
-    fetchGyms()
-    fetchRequests()
-  }
-
-  const handleRejectWallRequest = async (req: WallRequest) => {
-    if (!confirm(`「${req.wall_name}」のリクエストを却下しますか？`)) return
-    await supabase.from('wall_requests').update({ status: 'rejected' }).eq('id', req.id)
-    fetchRequests()
-  }
-
   /* ===== 壁関連 ===== */
 
   const handleAddWall = async (gymId: string) => {
@@ -395,82 +258,6 @@ export default function AdminGyms() {
             <p className="mt-2 text-xs text-primary">{message}</p>
           )}
         </div>
-
-        {/* リクエスト一覧 */}
-        {(gymRequests.length > 0 || wallRequests.length > 0) && (
-          <div className="mt-8">
-            <h2 className="text-sm font-bold text-text-main mb-3">
-              未承認リクエスト（{gymRequests.length + wallRequests.length}件）
-            </h2>
-
-            {/* ジム追加リクエスト */}
-            {gymRequests.map((req) => (
-              <div key={req.id} className="bg-card rounded-xl border border-border p-4 mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-0.5 text-xs font-medium bg-primary-light text-primary rounded-full">ジム追加</span>
-                  <span className="text-xs text-text-sub">
-                    {req.profiles?.[0]?.nickname || '不明'} ・ {new Date(req.created_at).toLocaleDateString('ja-JP')}
-                  </span>
-                </div>
-                <p className="text-base font-bold text-text-main">{req.gym_name}</p>
-                {req.latitude && req.longitude && (
-                  <p className="text-xs text-text-sub mt-1">{req.latitude}, {req.longitude}</p>
-                )}
-                {req.wall_names && req.wall_names.length > 0 && (
-                  <p className="text-xs text-text-sub mt-1">壁: {req.wall_names.join(', ')}</p>
-                )}
-                {req.note && (
-                  <p className="text-xs text-text-sub mt-1">備考: {req.note}</p>
-                )}
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={() => handleApproveGymRequest(req)}
-                    className="flex-1 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-                  >
-                    承認・登録
-                  </button>
-                  <button
-                    onClick={() => handleRejectGymRequest(req)}
-                    className="flex-1 py-2 text-sm font-medium border border-border text-text-sub rounded-lg hover:border-primary transition-colors"
-                  >
-                    却下
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {/* 壁追加リクエスト */}
-            {wallRequests.map((req) => (
-              <div key={req.id} className="bg-card rounded-xl border border-border p-4 mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2 py-0.5 text-xs font-medium bg-primary-light text-primary rounded-full">壁追加</span>
-                  <span className="text-xs text-text-sub">
-                    {req.profiles?.[0]?.nickname || '不明'} ・ {new Date(req.created_at).toLocaleDateString('ja-JP')}
-                  </span>
-                </div>
-                <p className="text-base font-bold text-text-main">{req.wall_name}</p>
-                <p className="text-xs text-text-sub mt-1">ジム: {req.gym_name}</p>
-                {req.note && (
-                  <p className="text-xs text-text-sub mt-1">備考: {req.note}</p>
-                )}
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={() => handleApproveWallRequest(req)}
-                    className="flex-1 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-                  >
-                    承認・登録
-                  </button>
-                  <button
-                    onClick={() => handleRejectWallRequest(req)}
-                    className="flex-1 py-2 text-sm font-medium border border-border text-text-sub rounded-lg hover:border-primary transition-colors"
-                  >
-                    却下
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* 登録済みジム一覧 */}
         <h2 className="text-sm font-bold text-text-main mt-8 mb-3">
