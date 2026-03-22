@@ -37,15 +37,15 @@ export default function RootLayout({
         <div style={{position:'fixed',top:0,left:0,zIndex:9999,background:'red',color:'white',fontSize:'20px',padding:'4px 8px'}} id="dbg"></div>
         <script dangerouslySetInnerHTML={{__html:`
           function u(){
-            var ms=document.querySelectorAll('meta[name="viewport"]');
-            var sw=document.documentElement.scrollWidth;
-            var bw=document.body.scrollWidth;
-            var info='VP:'+window.innerWidth+'px | scroll:'+sw+'px | body:'+bw+'px | meta:'+ms.length;
-            for(var i=0;i<ms.length;i++){info+=' | ['+i+']:'+ms[i].content}
-            document.getElementById('dbg').textContent=info;
+            var wide=[];
+            document.querySelectorAll('*').forEach(function(el){
+              if(el.scrollWidth>400){
+               wide.push(el.tagName+'.'+el.className.split(' ')[0]+':'+el.scrollWidth+'px')
+              }
+            });
+            document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px | '+wide.slice(0,5).join(' | ');
           }
-          u();window.addEventListener('resize',u);
-          setInterval(u,1000);
+          u();setTimeout(u,2000);setTimeout(u,5000);
         `}}/>
         <main className="pb-[env(safe-area-inset-bottom)]">
           {children}
