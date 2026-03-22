@@ -9,11 +9,6 @@ import type { User } from '@supabase/supabase-js'
 
 /* ========== 型定義 ========== */
 
-type Gym = {
-  id: string
-  name: string
-}
-
 type MyAscent = {
   id: string
   created_at: string
@@ -50,21 +45,6 @@ export default function UserPage() {
   const [bulkDeleteDays, setBulkDeleteDays] = useState('90')
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [bulkDeleteMessage, setBulkDeleteMessage] = useState('')
-  // リクエスト関連
-  const [gyms, setGyms] = useState<Gym[]>([])
-  const [showGymRequest, setShowGymRequest] = useState(false)
-  const [showWallRequest, setShowWallRequest] = useState(false)
-  const [reqGymName, setReqGymName] = useState('')
-  const [reqAddress, setReqAddress] = useState('')
-  const [reqLatitude, setReqLatitude] = useState('')
-  const [reqLongitude, setReqLongitude] = useState('')
-  const [reqWallNames, setReqWallNames] = useState('')
-  const [reqGymNote, setReqGymNote] = useState('')
-  const [reqWallGymId, setReqWallGymId] = useState('')
-  const [reqWallName, setReqWallName] = useState('')
-  const [reqWallNote, setReqWallNote] = useState('')
-  const [requestMessage, setRequestMessage] = useState('')
-  const [requestSubmitting, setRequestSubmitting] = useState(false)
   const supabase = createClient()
   const router = useRouter()
 
@@ -141,86 +121,10 @@ export default function UserPage() {
         setMyRoutes(formatted)
       }
 
-      // ジム一覧取得（壁追加リクエスト用）
-      const { data: gymsData } = await supabase
-        .from('gyms')
-        .select('id, name')
-        .order('name')
-      if (gymsData) setGyms(gymsData)
-
       setLoading(false)
     }
     init()
   }, [])
-
-  /* ===== ジム追加リクエスト ===== */
-  const handleGymRequest = async () => {
-    if (!reqGymName.trim()) {
-      setRequestMessage('ジム名を入力してください')
-      setTimeout(() => setRequestMessage(''), 3000)
-      return
-    }
-    setRequestSubmitting(true)
-
-    const wallNamesArray = reqWallNames
-      .split(/[,、\n]/)
-      .map(s => s.trim())
-      .filter(Boolean)
-
-    const { error } = await supabase.from('gym_requests').insert({
-      user_id: currentUser!.id,
-      gym_name: reqGymName.trim(),
-      address: reqAddress.trim() || null,
-      latitude: reqLatitude ? parseFloat(reqLatitude) : null,
-      longitude: reqLongitude ? parseFloat(reqLongitude) : null,
-      wall_names: wallNamesArray.length > 0 ? wallNamesArray : null,
-      note: reqGymNote.trim() || null,
-    })
-
-    setRequestSubmitting(false)
-    if (error) {
-      setRequestMessage('送信に失敗しました')
-    } else {
-      setRequestMessage('ジム追加リクエストを送信しました！')
-      setReqGymName('')
-      setReqAddress('')
-      setReqLatitude('')
-      setReqLongitude('')
-      setReqWallNames('')
-      setReqGymNote('')
-      setShowGymRequest(false)
-    }
-    setTimeout(() => setRequestMessage(''), 3000)
-  }
-
-  /* ===== 壁追加リクエスト ===== */
-  const handleWallRequest = async () => {
-    if (!reqWallGymId || !reqWallName.trim()) {
-      setRequestMessage('ジムと壁の名前を入力してください')
-      setTimeout(() => setRequestMessage(''), 3000)
-      return
-    }
-    setRequestSubmitting(true)
-
-    const { error } = await supabase.from('wall_requests').insert({
-      user_id: currentUser!.id,
-      gym_id: reqWallGymId,
-      wall_name: reqWallName.trim(),
-      note: reqWallNote.trim() || null,
-    })
-
-    setRequestSubmitting(false)
-    if (error) {
-      setRequestMessage('送信に失敗しました')
-    } else {
-      setRequestMessage('壁追加リクエストを送信しました！')
-      setReqWallGymId('')
-      setReqWallName('')
-      setReqWallNote('')
-      setShowWallRequest(false)
-    }
-    setTimeout(() => setRequestMessage(''), 3000)
-  }
 
   const handleNicknameUpdate = async () => {
     if (!newNickname.trim()) {
@@ -515,167 +419,6 @@ export default function UserPage() {
                   </div>
                 )}
               </>
-            )}
-          </div>
-        )}
-
-        {/* リクエスト */}
-        {isOwner && (
-          <div className="mt-8">
-            <p className="text-2xl font-bold text-text-main mb-4">ジム・壁の追加リクエスト</p>
-
-            {requestMessage && (
-              <p className="mb-4 text-xl text-primary font-medium">{requestMessage}</p>
-            )}
-
-            <div className="flex gap-3 mb-4">
-              <button
-                onClick={() => { setShowGymRequest(!showGymRequest); setShowWallRequest(false) }}
-                className={`flex-1 py-3 rounded-xl text-xl font-medium border transition-colors ${
-                  showGymRequest ? 'bg-primary text-white border-primary' : 'bg-primary-light text-primary border-border hover:border-primary'
-                }`}
-              >
-                ジム追加
-              </button>
-              <button
-                onClick={() => { setShowWallRequest(!showWallRequest); setShowGymRequest(false) }}
-                className={`flex-1 py-3 rounded-xl text-xl font-medium border transition-colors ${
-                  showWallRequest ? 'bg-primary text-white border-primary' : 'bg-primary-light text-primary border-border hover:border-primary'
-                }`}
-              >
-                壁追加
-              </button>
-            </div>
-
-            {/* ジム追加リクエストフォーム */}
-            {showGymRequest && (
-              <div className="p-5 bg-card rounded-xl border border-border space-y-4">
-                <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">ジム名 *</label>
-                  <input
-                    type="text"
-                    value={reqGymName}
-                    onChange={(e) => setReqGymName(e.target.value)}
-                    placeholder="例：ボルダリングジム○○"
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">住所</label>
-                  <input
-                    type="text"
-                    value={reqAddress}
-                    onChange={(e) => setReqAddress(e.target.value)}
-                    placeholder="例：東京都渋谷区..."
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="block text-xl font-bold text-text-main mb-2">緯度</label>
-                    <input
-                      type="text"
-                      value={reqLatitude}
-                      onChange={(e) => setReqLatitude(e.target.value)}
-                      placeholder="35.6812"
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xl font-bold text-text-main mb-2">経度</label>
-                    <input
-                      type="text"
-                      value={reqLongitude}
-                      onChange={(e) => setReqLongitude(e.target.value)}
-                      placeholder="139.7671"
-                      className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">壁の名前（カンマ区切り）</label>
-                  <input
-                    type="text"
-                    value={reqWallNames}
-                    onChange={(e) => setReqWallNames(e.target.value)}
-                    placeholder="例：正面壁, 奥壁, スラブ壁"
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">備考</label>
-                  <input
-                    type="text"
-                    value={reqGymNote}
-                    onChange={(e) => setReqGymNote(e.target.value)}
-                    placeholder="補足情報があれば"
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                  />
-                </div>
-                <button
-                  onClick={handleGymRequest}
-                  disabled={requestSubmitting}
-                  style={{ paddingTop: '14px', paddingBottom: '14px' }}
-                  className={`w-full rounded-xl text-2xl font-bold transition-colors ${
-                    requestSubmitting
-                      ? 'bg-border text-text-sub cursor-not-allowed'
-                      : 'bg-primary text-white hover:bg-primary-dark'
-                  }`}
-                >
-                  {requestSubmitting ? '送信中...' : 'リクエストを送信'}
-                </button>
-              </div>
-            )}
-
-            {/* 壁追加リクエストフォーム */}
-            {showWallRequest && (
-              <div className="p-5 bg-card rounded-xl border border-border space-y-4">
-                <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">ジム *</label>
-                  <select
-                    value={reqWallGymId}
-                    onChange={(e) => setReqWallGymId(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors"
-                  >
-                    <option value="">ジムを選択</option>
-                    {gyms.map((gym) => (
-                      <option key={gym.id} value={gym.id}>{gym.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">壁の名前 *</label>
-                  <input
-                    type="text"
-                    value={reqWallName}
-                    onChange={(e) => setReqWallName(e.target.value)}
-                    placeholder="例：スラブ壁"
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xl font-bold text-text-main mb-2">備考</label>
-                  <input
-                    type="text"
-                    value={reqWallNote}
-                    onChange={(e) => setReqWallNote(e.target.value)}
-                    placeholder="補足情報があれば"
-                    className="w-full px-4 py-3 rounded-xl border border-border bg-bg text-text-main text-xl focus:outline-none focus:border-primary transition-colors placeholder:text-text-sub/50"
-                  />
-                </div>
-                <button
-                  onClick={handleWallRequest}
-                  disabled={requestSubmitting}
-                  style={{ paddingTop: '14px', paddingBottom: '14px' }}
-                  className={`w-full rounded-xl text-2xl font-bold transition-colors ${
-                    requestSubmitting
-                      ? 'bg-border text-text-sub cursor-not-allowed'
-                      : 'bg-primary text-white hover:bg-primary-dark'
-                  }`}
-                >
-                  {requestSubmitting ? '送信中...' : 'リクエストを送信'}
-                </button>
-              </div>
             )}
           </div>
         )}
