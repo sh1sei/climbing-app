@@ -36,12 +36,14 @@ export default function RootLayout({
       <body className="bg-bg">
         <div style={{position:'fixed',top:0,left:0,zIndex:9999,background:'red',color:'white',fontSize:'20px',padding:'4px 8px'}} id="dbg"></div>
         <script dangerouslySetInnerHTML={{__html:`
-          function u(){document.getElementById('dbg').textContent='VP:'+window.innerWidth+'px | screen:'+screen.width+'px'}
-          u();window.addEventListener('resize',u);
-          new MutationObserver(function(){
-            var m=document.querySelectorAll('meta[name="viewport"]');
-            document.getElementById('dbg').textContent+=' | meta:'+m.length
-          }).observe(document.head,{childList:true,subtree:true});
+         function u(){
+         var ms=document.querySelectorAll('meta[name="viewport"]');
+         var info='VP:'+window.innerWidth+'px | screen:'+screen.width+'px | meta数:'+ms.length;
+         for(var i=0;i<ms.length;i++){info+=' | ['+i+']:'+ms[i].content}
+         document.getElementById('dbg').textContent=info;
+         }
+         u();window.addEventListener('resize',u);
+         setInterval(u,1000);
         `}}/>
         <main className="pb-[env(safe-area-inset-bottom)]">
           {children}
